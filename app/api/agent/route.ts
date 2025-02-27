@@ -82,7 +82,7 @@ async function getOrInitializeAgent(): Promise<
 
   try {
     const localAnvil = defineChain({
-      id: 901,
+      id: 10,
       name: "Local anvil",
       nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
       rpcUrls: {

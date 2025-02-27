@@ -56,8 +56,9 @@ It takes the following inputs:
         functionName: "decimals",
       });
 
+      const dec = parseInt(decimals as string);
+
       const hash = await walletProvider.sendTransaction({
-        // const bridgeContract = "0x4200000000000000000000000000000000000028" as Hex
         to: "0x4200000000000000000000000000000000000028" as Hex,
         data: encodeFunctionData({
           abi: bridgeAbi,
@@ -65,7 +66,7 @@ It takes the following inputs:
           args: [
             args.token as Hex,
             args.to as Hex,
-            parseUnits(args.amount.toString(), parseInt(decimals as string)),
+            args.amount,
             BigInt(args.chainId),
           ],
         }),
