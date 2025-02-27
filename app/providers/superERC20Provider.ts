@@ -3,13 +3,13 @@ import { z } from "zod";
 import { ActionProvider } from "@coinbase/agentkit";
 // import { Network } from "../../network";
 import { Network } from "@coinbase/agentkit";
-import { abi } from "./constants";
-
+import { abi as bridgeAbi } from "./ABIs/bridge";
+import { abi as erc20Abi } from "./ABIs/erc20";
 // import { CreateAction } from "../actionDecorator";
 import { CreateAction } from "@coinbase/agentkit";
 import { TransferSchema } from "./schemas";
 // import { abi } from "./constants";
-import { encodeFunctionData, formatUnits, Hex } from "viem";
+import { Abi, encodeFunctionData, formatUnits, Hex, parseUnits } from "viem";
 // import { EvmWalletProvider } from "../../wallet-providers";
 import { EvmWalletProvider } from "@coinbase/agentkit";
 
@@ -44,16 +44,30 @@ It takes the following inputs:
     `,
     schema: TransferSchema,
   })
-  async transfer(walletProvider: EvmWalletProvider, args: z.infer<typeof TransferSchema>): Promise<string> {
+  async transfer(
+    walletProvider: EvmWalletProvider,
+    args: z.infer<typeof TransferSchema>
+  ): Promise<string> {
     try {
+      // get token decimals
+      const decimals = await walletProvider.readContract({
+        address: args.token as Hex,
+        abi: erc20Abi,
+        functionName: "decimals",
+      });
+
       const hash = await walletProvider.sendTransaction({
         // const bridgeContract = "0x4200000000000000000000000000000000000028" as Hex
         to: "0x4200000000000000000000000000000000000028" as Hex,
         data: encodeFunctionData({
-          abi,
+          abi: bridgeAbi,
           functionName: "sendERC20",
-          args: [args.token as Hex, args.to as Hex, args.amount, BigInt(args.chainId)],
-          // args: [args.destination as Hex, BigInt(args.amount)],
+          args: [
+            args.token as Hex,
+            args.to as Hex,
+            parseUnits(args.amount.toString(), parseInt(decimals as string)),
+            BigInt(args.chainId),
+          ],
         }),
       });
 

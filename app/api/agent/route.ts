@@ -14,6 +14,8 @@ import {
 import { superERC20ActionProvider } from "@/app/providers/superERC20Provider";
 import { getLangChainTools } from "@coinbase/agentkit-langchain";
 import { ChatOpenAI } from "@langchain/openai";
+import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+
 import { MemorySaver } from "@langchain/langgraph";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { AgentRequest, AgentResponse } from "@/app/types/api";
@@ -70,7 +72,9 @@ let agent: ReturnType<typeof createReactAgent>;
  *
  * @throws {Error} If the agent initialization fails.
  */
-async function getOrInitializeAgent(): Promise<ReturnType<typeof createReactAgent>> {
+async function getOrInitializeAgent(): Promise<
+  ReturnType<typeof createReactAgent>
+> {
   // If agent has already been initialized, return it
   if (agent) {
     return agent;
@@ -88,11 +92,13 @@ async function getOrInitializeAgent(): Promise<ReturnType<typeof createReactAgen
       },
     });
 
-    // Initialize LLM: https://platform.openai.com/docs/models#gpt-4o
+    // // Initialize LLM: https://platform.openai.com/docs/models#gpt-4o
     const llm = new ChatOpenAI({ model: "gpt-4o-mini" });
 
     // Initialize WalletProvider: https://docs.cdp.coinbase.com/agentkit/docs/wallet-management
-    const account = privateKeyToAccount(process.env.PRIVATE_KEY as `0x${string}`);
+    const account = privateKeyToAccount(
+      process.env.PRIVATE_KEY as `0x${string}`
+    );
     const networkId = process.env.NETWORK_ID as string;
     const client = createWalletClient({
       account,
@@ -122,7 +128,8 @@ async function getOrInitializeAgent(): Promise<ReturnType<typeof createReactAgen
     const memory = new MemorySaver();
 
     // Initialize Agent
-    const canUseFaucet = walletProvider.getNetwork().networkId == "base-sepolia";
+    const canUseFaucet =
+      walletProvider.getNetwork().networkId == "base-sepolia";
     const faucetMessage = `If you ever need funds, you can request them from the faucet.`;
     const cantUseFaucetMessage = `If you need funds, you can provide your wallet details and request funds from the user.`;
     agent = createReactAgent({
@@ -131,7 +138,9 @@ async function getOrInitializeAgent(): Promise<ReturnType<typeof createReactAgen
       checkpointSaver: memory,
       messageModifier: `
         You are a helpful agent that can interact onchain using the Coinbase Developer Platform AgentKit. You are 
-        empowered to interact onchain using your tools. ${canUseFaucet ? faucetMessage : cantUseFaucetMessage}.
+        empowered to interact onchain using your tools. ${
+          canUseFaucet ? faucetMessage : cantUseFaucetMessage
+        }.
         Before executing your first action, get the wallet details to see what network 
         you're on. If there is a 5XX (internal) HTTP error code, ask the user to try again later. If someone 
         asks you to do something you can't do with your currently available tools, you must say so, and 
@@ -165,7 +174,9 @@ async function getOrInitializeAgent(): Promise<ReturnType<typeof createReactAgen
  *     body: JSON.stringify({ userMessage: input }),
  * });
  */
-export async function POST(req: Request & { json: () => Promise<AgentRequest> }): Promise<NextResponse<AgentResponse>> {
+export async function POST(
+  req: Request & { json: () => Promise<AgentRequest> }
+): Promise<NextResponse<AgentResponse>> {
   try {
     // 1️. Extract user message from the request body
     const { userMessage } = await req.json();
@@ -176,7 +187,7 @@ export async function POST(req: Request & { json: () => Promise<AgentRequest> })
     // 3.Start streaming the agent's response
     const stream = await agent.stream(
       { messages: [{ content: userMessage, role: "user" }] }, // The new message to send to the agent
-      { configurable: { thread_id: "AgentKit Discussion" } }, // Customizable thread ID for tracking conversations
+      { configurable: { thread_id: "AgentKit Discussion" } } // Customizable thread ID for tracking conversations
     );
 
     // 4️. Process the streamed response chunks into a single message
