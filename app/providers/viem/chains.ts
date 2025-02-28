@@ -9,6 +9,10 @@ const chains = {
     id: 8453,
     rpcUrl: "http://localhost:9546",
   },
+  mode: {
+    id: 34443,
+    rpcUrl: "http://localhost:9547",
+  },
 };
 
 export function getViemClients(): PublicClient[] {

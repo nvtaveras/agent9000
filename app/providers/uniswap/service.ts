@@ -3,6 +3,7 @@ import { getViemClients } from "../viem/chains";
 import { Pair } from "@uniswap/v2-sdk";
 import { Token } from "@uniswap/sdk-core";
 import { abi as uniswapAbi } from "../ABIs/uniswap";
+import { abi as uniswapFactoryAbi } from "../ABIs/uniswapFactory";
 
 export interface UniswapPairInfo {
   chainId: number;
@@ -14,30 +15,33 @@ export interface UniswapPairInfo {
 }
 
 export class UniswapService {
-  private static readonly knownTokensPerChain: Record<
-    number,
-    Record<string, string>
-  > = {
+  private static readonly knownTokensPerChain: Record<number, Record<string, string>> = {
     8453: {
       // Base
-      DAI: "0xf793A6B9587e09e6149Ea99Ed638DE0655CcfcB8",
+      ST9000: "0xcD630A5bDBb4DA3d1c79237bB326b1293950935D",
       ETH: "0x4200000000000000000000000000000000000024",
-      // SUPERETH: "0xf793A6B9587e09e6149Ea99Ed638DE0655CcfcB8",
     },
     10: {
       // Optimism
-      DAI: "0xf793A6B9587e09e6149Ea99Ed638DE0655CcfcB8",
+      ST9000: "0xcD630A5bDBb4DA3d1c79237bB326b1293950935D",
       ETH: "0x4200000000000000000000000000000000000024",
-      // SUPERETH: "0xf793A6B9587e09e6149Ea99Ed638DE0655CcfcB8",
+    },
+    34443: {
+      // Mode
+      ST9000: "0xcD630A5bDBb4DA3d1c79237bB326b1293950935D",
+      ETH: "0x4200000000000000000000000000000000000024",
     },
   };
 
   private static readonly decimalsPerToken: Record<string, number> = {
-    "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913": 6,
-    "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85": 6,
-    "0x4200000000000000000000000000000000000006": 18,
-    "0xf793A6B9587e09e6149Ea99Ed638DE0655CcfcB8": 18,
+    "0xcD630A5bDBb4DA3d1c79237bB326b1293950935D": 18,
     "0x4200000000000000000000000000000000000024": 18,
+  };
+
+  private static readonly factoryPerChain: Record<number, string> = {
+    10: "0x0c3c1c532F1e39EdF36BE9Fe0bE1410313E074Bf",
+    8453: "0x8909Dc15e40173Ff4699343b6eB8132c65e18eC6",
+    34443: "0x50fD14F0eba5A678c1eBC16bDd3794f09362a95C",
   };
 
   private clients: PublicClient[];
@@ -46,32 +50,42 @@ export class UniswapService {
     this.clients = getViemClients();
   }
 
-  public async fetchPairsOnAllChains(
-    tokenIn: string,
-    tokenOut: string
-  ): Promise<UniswapPairInfo[]> {
+  public getTokenAddress(chainId: number, token: string): string {
+    return UniswapService.knownTokensPerChain[chainId][token];
+  }
+
+  public async getPairAddress(client: PublicClient, tokenIn: string, tokenOut: string): Promise<string> {
+    const chainId = client.chain!.id;
+    const factoryAddress = UniswapService.factoryPerChain[chainId];
+
+    return await client.readContract({
+      address: factoryAddress as Hex,
+      abi: uniswapFactoryAbi,
+      functionName: "getPair",
+      args: [tokenIn as Hex, tokenOut as Hex],
+    });
+  }
+
+  public async fetchPairsOnAllChains(tokenIn: string, tokenOut: string): Promise<UniswapPairInfo[]> {
     const pairs = [];
     for (const client of this.clients) {
       const chainId = client.chain!.id;
 
-      const tokenInAddress =
-        UniswapService.knownTokensPerChain[chainId][tokenIn];
-      const tokenOutAddress =
-        UniswapService.knownTokensPerChain[chainId][tokenOut];
+      // const tokenInAddress =tokenIn;
+      const tokenInAddress = UniswapService.knownTokensPerChain[chainId][tokenIn];
+      // const tokenOutAddress = tokenOut;
+      const tokenOutAddress = UniswapService.knownTokensPerChain[chainId][tokenOut];
 
-      const uniTokenIn = new Token(
-        chainId,
-        tokenInAddress,
-        UniswapService.decimalsPerToken[tokenInAddress]
-      );
-      const uniTokenOut = new Token(
-        chainId,
-        tokenOutAddress,
-        UniswapService.decimalsPerToken[tokenOutAddress]
-      );
+      console.log("tokenInAddress", tokenInAddress);
+      console.log("tokenOutAddress", tokenOutAddress);
 
-      const pairAddress = Pair.getAddress(uniTokenIn, uniTokenOut);
-      console.log("Pair address", pairAddress);
+      const uniTokenIn = new Token(chainId, tokenInAddress, UniswapService.decimalsPerToken[tokenInAddress]);
+      const uniTokenOut = new Token(chainId, tokenOutAddress, UniswapService.decimalsPerToken[tokenOutAddress]);
+
+      // const pairAddress = Pair.getAddress(uniTokenIn, uniTokenOut);
+      const pairAddress = await this.getPairAddress(client, tokenInAddress, tokenOutAddress);
+      console.log("pair for chain id", chainId, "=>", pairAddress);
+      // console.log("Pair address", pairAddress);
 
       const token0 = await client.readContract({
         address: pairAddress as Hex,

@@ -8,7 +8,10 @@ import { uniswapSwapSchema } from "./schemas";
 import { UniswapService } from "./service";
 
 import { abi as superswapperabi } from "../ABIs/superswapper";
+import { abi as erc20abi } from "../ABIs/erc20";
 import { UniswapOptimizor } from "./optimizooor";
+
+const SUPERSWAPPER_ADDRESS = "0x7B42F440353999e506f44CC955d12b3b8Dc7544B";
 
 export class UniswapV2ActionProvider extends ActionProvider<EvmWalletProvider> {
   constructor() {
@@ -23,29 +26,25 @@ export class UniswapV2ActionProvider extends ActionProvider<EvmWalletProvider> {
    * @returns The result of the swap.
    */
   @CreateAction({
-    name: "zap",
+    name: "superswap",
     description: `
-    Execute a zap through Uniswap V2, using the best available price across all chains.
+    Execute a superchain swap through Uniswap V2, using the best available price across all chains.
 
     It takes the following inputs:
     - tokenIn: The token to swap from
     - tokenOut: The token to swap to
     - amountIn: The amount of tokens to swap
 
-    DO NOT MODIFY THE TOKEN SYMBOLS GIVEN BY THE USER.
+    IMPORTANT:
+    - After completing the transaction, always show the user the transaction hash. Do not include a link to the explorer but just the hash.
     `,
     schema: uniswapSwapSchema,
   })
-  async swap(
-    walletProvider: EvmWalletProvider,
-    args: z.infer<typeof uniswapSwapSchema>
-  ) {
+  async swap(walletProvider: EvmWalletProvider, args: z.infer<typeof uniswapSwapSchema>) {
     const { tokenIn, tokenOut, amountIn } = args;
     console.log("Swap args", args);
     if (parseInt(amountIn, 10) > 1e18) {
-      throw new Error(
-        `Amount in is too large, did agent9000 get it wrong? ${amountIn}`
-      );
+      throw new Error(`Amount in is too large, did agent9000 get it wrong? ${amountIn}`);
     }
 
     const amountInAdjusted = parseUnits(amountIn, 18).toString();
@@ -57,46 +56,39 @@ export class UniswapV2ActionProvider extends ActionProvider<EvmWalletProvider> {
     const pairs = await uniswap.fetchPairsOnAllChains(tokenIn, tokenOut);
     console.log("=== Pairs from UniswapService ===");
     console.log(pairs);
-    const swaps = optimizooor.getSwapsToExecute(
-      amountInAdjusted,
-      pairs
-      // optimizooor.getTestPairs()
-    );
+    const swaps = optimizooor.getSwapsToExecute(amountInAdjusted, pairs);
     console.log("=== Swaps from Optimizooor ===");
     console.log(swaps);
 
     let chains = swaps.map((swap) => BigInt(swap.chainId));
     let amounts = swaps.map((swap) => BigInt(swap.amountIn));
 
-    console.log(chains);
-    console.log(amounts);
+    const amountsSum = amounts.reduce((acc, amount) => acc + amount, BigInt(0));
+    const chainId = parseInt(walletProvider.getNetwork().chainId!, 10);
+    const tokenInAddress = uniswap.getTokenAddress(chainId, tokenIn);
 
-    chains = [BigInt(8453)];
-    amounts = [BigInt(5e18)];
-
-    const superSwapperAddress = "0xe05ba9c8827072e1508099E1797BA84baC657012";
-
-    const hash = await walletProvider.sendTransaction({
-      to: superSwapperAddress as Hex,
+    // Approve superswapper the amount of tokens
+    const approveHash = await walletProvider.sendTransaction({
+      to: tokenInAddress as Hex,
       data: encodeFunctionData({
-        abi: superswapperabi,
-        functionName: "initiateSwap",
-        args: [
-          args.tokenIn as Hex,
-          chains,
-          amounts,
-          // args.token as Hex,
-          // args.to as Hex,
-          // args.amount,
-          // BigInt(args.chainId),
-        ],
+        abi: erc20abi,
+        functionName: "approve",
+        args: [SUPERSWAPPER_ADDRESS as Hex, amountsSum],
       }),
     });
 
-    // Call initiateSwap(address tokenIn, uint256[] memory amounts, uint256[] memory chainIds)
+    console.log("Approve hash", approveHash);
 
-    // Fake temporary tx hash
-    // return "0x705fe29da66de793ef443046a465c09784d05fb9c83ce968455b66a83ddda926";
+    const hash = await walletProvider.sendTransaction({
+      to: SUPERSWAPPER_ADDRESS as Hex,
+      data: encodeFunctionData({
+        abi: superswapperabi,
+        functionName: "initiateSwap",
+        args: [tokenInAddress as Hex, amounts, chains],
+      }),
+    });
+
+    console.log("Swap hash", hash);
     return hash;
   }
 
