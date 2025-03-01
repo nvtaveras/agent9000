@@ -95,7 +95,7 @@ export function ChatInterface() {
               {messages.map((message, index) => (
                 <div key={index} className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
                   <div
-                    className={`max-w-[80%] rounded-sm px-4 py-2 font-mono ${
+                    className={`max-w-[80%] rounded-sm px-4 py-2 font-mono text-lg ${
                       message.sender === "user"
                         ? "bg-primary/20 border border-primary/30 text-foreground"
                         : "bg-muted/50 border border-muted text-foreground flex items-center gap-3"
@@ -121,7 +121,7 @@ export function ChatInterface() {
                         {message.text}
                       </ReactMarkdown>
                       <p
-                        className={`text-xs mt-1 ${
+                        className={`text-sm mt-1 ${
                           message.sender === "user" ? "text-primary/70" : "text-muted-foreground"
                         }`}
                       >
@@ -164,7 +164,7 @@ export function ChatInterface() {
                 placeholder="$ send message"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                className="w-full h-12 pl-6 pr-16 font-mono bg-muted/50 border-primary/20 focus:border-primary/50"
+                className="w-full h-12 pl-6 pr-16 text-lg font-mono bg-muted/50 border-primary/20 focus:border-primary/50"
                 disabled={isThinking}
               />
               <Button

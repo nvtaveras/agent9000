@@ -20,13 +20,13 @@ export function Header({
             <div className="w-8 h-8 rounded border border-primary/50 bg-background flex items-center justify-center overflow-hidden">
               <Image src="/logo-square.jpg" alt="Agent 9000 Logo" width={32} height={32} className="object-cover" />
             </div>
-            <span className="text-xl font-mono text-primary">Agent 9000</span>
+            <span className="text-2xl font-mono text-primary">Agent 9000</span>
           </Link>
 
           <nav className="hidden md:flex items-center gap-6">
             <button
               onClick={() => setActiveView("home")}
-              className={`text-lg font-mono cursor-pointer transition-colors duration-200 ease-in-out ${
+              className={`text-xl font-mono cursor-pointer transition-colors duration-200 ease-in-out ${
                 activeView === "home" ? "text-[#00ff92]" : "text-foreground/90 hover:text-[#00ff92]/90"
               }`}
             >
@@ -34,7 +34,7 @@ export function Header({
             </button>
             <button
               onClick={() => setActiveView("boomer")}
-              className={`text-lg font-mono cursor-pointer transition-colors duration-200 ease-in-out ${
+              className={`text-xl font-mono cursor-pointer transition-colors duration-200 ease-in-out ${
                 activeView === "boomer" ? "text-[#00ff92]" : "text-foreground/90 hover:text-[#00ff92]/90"
               }`}
             >
@@ -42,7 +42,7 @@ export function Header({
             </button>
             <button
               onClick={() => setActiveView("zoomer")}
-              className={`text-lg font-mono cursor-pointer transition-colors duration-200 ease-in-out ${
+              className={`text-xl font-mono cursor-pointer transition-colors duration-200 ease-in-out ${
                 activeView === "zoomer" ? "text-[#00ff92]" : "text-foreground/90 hover:text-[#00ff92]/90"
               }`}
             >
@@ -68,7 +68,7 @@ export function Header({
                           onClick={openConnectModal}
                           className="cursor: pointer; bg-[#00ff9240] border border-[#00ff92] text-[#00ff92] 
                                                  hover:bg-[#00ff9220] transition-all duration-200 
-                                                 font-mono text-sm px-3 py-1.5 rounded-xl cursor-pointer
+                                                 font-mono text-base px-3 py-1.5 rounded-xl cursor-pointer
                                                  hover:shadow-[0_0_5px_rgba(0,255,146,0.3)]"
                         >
                           Connect Wallet
@@ -82,7 +82,7 @@ export function Header({
                           onClick={openChainModal}
                           className="bg-[#00ff9240] border border-[#00ff92] text-[#00ff92] 
                                                 hover:bg-[#00ff9220] transition-all duration-200 
-                                                font-mono text-sm px-3 py-1.5 rounded-xl cursor-pointer
+                                                font-mono text-base px-3 py-1.5 rounded-xl cursor-pointer
                                                 hover:shadow-[0_0_5px_rgba(0,255,146,0.3)]
                                                 flex items-center gap-2"
                         >
@@ -93,7 +93,7 @@ export function Header({
                           onClick={openAccountModal}
                           className="bg-[#00ff9240] border border-[#00ff92] text-[#00ff92] 
                                                 hover:bg-[#00ff9220] transition-all duration-200 
-                                                font-mono text-sm px-3 py-1.5 rounded-xl cursor-pointer
+                                                font-mono text-base px-3 py-1.5 rounded-xl cursor-pointer
                                                 hover:shadow-[0_0_5px_rgba(0,255,146,0.3)]
                                                 flex items-center gap-2"
                         >
