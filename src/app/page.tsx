@@ -342,23 +342,25 @@ export default function CryptoSwap() {
             </h2>
 
             <p className="text-xl md:text-2xl text-white/80 max-w-2xl mx-auto mb-8">
-              Optimize cross-chain swaps. Maximize yields. Stay ahead in DeFi.
+              Instant cross-chain swaps with unified liquidity<br></br>
+              Automated yield optimization<br></br>
+              Stay ahead in DeFi
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
               <div className="p-6 border border-primary/30 bg-background/60 backdrop-blur-sm">
-                <h3 className="text-2xl font-mono text-primary mb-3">Instant x-chain swaps*</h3>
-                <p className="text-white/70">fine, maybe 2-3 seconds</p>
+                <h3 className="text-2xl font-mono text-primary mb-3">Built for the superchain</h3>
+                <p className="text-white/70">Defi interoperability across the entire OP superchain</p>
               </div>
 
               <div className="p-6 border border-primary/30 bg-background/60 backdrop-blur-sm">
                 <h3 className="text-2xl font-mono text-primary mb-3">AI-Powered</h3>
-                <p className="text-white/70">Smart algorithms that optimize your trading experience</p>
+                <p className="text-white/70">Smart algorithms that optimize your DeFi experience</p>
               </div>
 
               <div className="p-6 border border-primary/30 bg-background/60 backdrop-blur-sm">
-                <h3 className="text-2xl font-mono text-primary mb-3">Maximum Yields</h3>
-                <p className="text-white/70">Find the best yield opportunities across the entire DeFi ecosystem</p>
+                <h3 className="text-2xl font-mono text-primary mb-3">Normies welcome</h3>
+                <p className="text-white/70">Intent-based interface powered by Coinbase's AgentKit</p>
               </div>
             </div>
 
@@ -399,189 +401,205 @@ export default function CryptoSwap() {
 
             <Card>
               <CardContent className="space-y-4 pt-6">
-                {/* Sell Section */}
-                <div className="rounded-none border border-border/50">
-                  <div className="p-4 pb-2">
-                    <div className="text-sm text-muted-foreground font-mono mb-2 flex justify-between">
-                      <span>Sell</span>
-                      {isConnected && (
-                        <span>
-                          Balance: {parseFloat(sellTokenBalance).toFixed(6)} {sellCurrency}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center">
-                      <Input
-                        type="text"
-                        value={sellAmount}
-                        onChange={handleSellAmountChange}
-                        className="border-0 text-5xl md:text-4xl font-normal p-0 h-auto focus-visible:ring-0"
-                      />
-                      {isConnected && (
-                        <button
-                          onClick={handleSetMaxAmount}
-                          className="text-xs text-primary border border-primary/30 px-2 py-0.5 rounded ml-2 hover:bg-primary/10"
-                        >
-                          Max
-                        </button>
-                      )}
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="outline" className="button-hacker ml-2">
-                            <div className="w-6 h-6 rounded-none border border-primary/50 flex items-center justify-center mr-2">
-                              <span className="text-primary text-sm">$</span>
-                            </div>
-                            {sellCurrency}
-                            <ChevronDown className="h-4 w-4 ml-2" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <DropdownMenuItem onClick={() => handleSellCurrencyChange("ST9000")}>
-                            Token9000 (ST9000)
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleSellCurrencyChange("ETH")}>Super ETH</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-
-                    {/* TODO: Add the price of the token */}
-                    {/* <div className="text-sm text-muted-foreground mt-1">
-                                 $
-                                 {Number.parseFloat(
-                                    sellAmount
-                                 ).toLocaleString()}
-                              </div> */}
-                  </div>
-
-                  <div className="flex items-center justify-center border-t border-b border-border/50 py-2">
-                    <div className="bg-background border border-primary/50 p-2">
-                      <ArrowDown className="h-4 w-4 text-primary" />
-                    </div>
-                  </div>
-
-                  <div className="p-4 pt-2">
-                    <div className="text-sm text-muted-foreground font-mono mb-2">Buy</div>
-                    <div className="text-sm text-muted-foreground font-mono mb-2 flex justify-between">
-                      <span>Buy</span>
-                      {isConnected && (
-                        <span>
-                          Balance: {parseFloat(buyTokenBalance).toFixed(6)} {buyCurrency}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center">
-                      {isCalculating ? (
-                        <Skeleton className="h-8 flex-1" />
-                      ) : (
-                        <Input
-                          type="text"
-                          value={buyAmount}
-                          onChange={(e) => setBuyAmount(e.target.value)}
-                          className="border-0 text-5xl md:text-4xl font-normal p-0 h-auto focus-visible:ring-0"
-                        />
-                      )}
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="outline" className="button-hacker ml-2">
-                            <div className="w-6 h-6 rounded-none border border-primary/50 flex items-center justify-center mr-2">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="h-3 w-3 text-primary"
-                                viewBox="0 0 24 24"
-                              >
-                                <path d="M12 2L6 12L12 16L18 12L12 2Z" fill="currentColor" />
-                                <path d="M12 16V22L18 12L12 16Z" fill="currentColor" opacity="0.6" />
-                                <path d="M12 16L6 12L12 22V16Z" fill="currentColor" opacity="0.6" />
-                              </svg>
-                            </div>
-                            {buyCurrency}
-                            <ChevronDown className="h-4 w-4 ml-2" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <DropdownMenuItem onClick={() => handleBuyCurrencyChange("WETH")}>
-                            Super WETH
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleBuyCurrencyChange("T9K")}>
-                            Token9000 (T9K)
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-
-                    {/* TODO: Add the price of the token */}
-                    {/* <div className="text-sm text-muted-foreground mt-1">
-                                 $5,999.99
-                              </div> */}
-                  </div>
-                </div>
-
-                {/* Route Selection Button */}
-                <div
-                  className={`flex justify-between items-center py-2 ${routes ? "cursor-pointer" : "opacity-50"}`}
-                  onClick={() => routes && setShowRouteModal(true)}
-                >
-                  <div className="flex items-center gap-2 text-primary">
-                    <div className="flex -space-x-1">
-                      {routes?.optimizedRoute.steps
-                        .filter((step) => step.percentage > 0)
-                        .map((step) => (
-                          <ChainIcon
-                            key={step.chainId}
-                            chainId={step.chainId}
-                            className={`w-5 h-5 border ${
-                              step === routes.optimizedRoute.steps[0] ? "border-primary/50 z-10" : "border-secondary/50"
-                            }`}
+                {activeTab === "Swap" ? (
+                  <>
+                    {/* Sell Section */}
+                    <div className="rounded-none border border-border/50">
+                      <div className="p-4 pb-2">
+                        <div className="text-sm text-muted-foreground font-mono mb-2 flex justify-between">
+                          <span>Sell</span>
+                          {isConnected && (
+                            <span>
+                              Balance: {parseFloat(sellTokenBalance).toFixed(6)} {sellCurrency}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center">
+                          <Input
+                            type="text"
+                            value={sellAmount}
+                            onChange={handleSellAmountChange}
+                            className="border-0 text-5xl md:text-4xl font-normal p-0 h-auto focus-visible:ring-0"
                           />
-                        )) ?? <></>}
+                          {isConnected && (
+                            <button
+                              onClick={handleSetMaxAmount}
+                              className="text-xs text-primary border border-primary/30 px-2 py-0.5 rounded ml-2 hover:bg-primary/10"
+                            >
+                              Max
+                            </button>
+                          )}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="outline" className="button-hacker ml-2">
+                                <div className="w-6 h-6 rounded-none border border-primary/50 flex items-center justify-center mr-2">
+                                  <span className="text-primary text-sm">$</span>
+                                </div>
+                                {sellCurrency}
+                                <ChevronDown className="h-4 w-4 ml-2" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                              <DropdownMenuItem onClick={() => handleSellCurrencyChange("ST9000")}>
+                                Token9000 (ST9000)
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleSellCurrencyChange("ETH")}>
+                                Super ETH
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+
+                        {/* TODO: Add the price of the token */}
+                        {/* <div className="text-sm text-muted-foreground mt-1">
+                                     $
+                                     {Number.parseFloat(
+                                        sellAmount
+                                     ).toLocaleString()}
+                                  </div> */}
+                      </div>
+
+                      <div className="flex items-center justify-center border-t border-b border-border/50 py-2">
+                        <div className="bg-background border border-primary/50 p-2">
+                          <ArrowDown className="h-4 w-4 text-primary" />
+                        </div>
+                      </div>
+
+                      <div className="p-4 pt-2">
+                        <div className="text-sm text-muted-foreground font-mono mb-2">Buy</div>
+                        <div className="text-sm text-muted-foreground font-mono mb-2 flex justify-between">
+                          <span>Buy</span>
+                          {isConnected && (
+                            <span>
+                              Balance: {parseFloat(buyTokenBalance).toFixed(6)} {buyCurrency}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center">
+                          {isCalculating ? (
+                            <Skeleton className="h-8 flex-1" />
+                          ) : (
+                            <Input
+                              type="text"
+                              value={buyAmount}
+                              onChange={(e) => setBuyAmount(e.target.value)}
+                              className="border-0 text-5xl md:text-4xl font-normal p-0 h-auto focus-visible:ring-0"
+                            />
+                          )}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="outline" className="button-hacker ml-2">
+                                <div className="w-6 h-6 rounded-none border border-primary/50 flex items-center justify-center mr-2">
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="h-3 w-3 text-primary"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path d="M12 2L6 12L12 16L18 12L12 2Z" fill="currentColor" />
+                                    <path d="M12 16V22L18 12L12 16Z" fill="currentColor" opacity="0.6" />
+                                    <path d="M12 16L6 12L12 22V16Z" fill="currentColor" opacity="0.6" />
+                                  </svg>
+                                </div>
+                                {buyCurrency}
+                                <ChevronDown className="h-4 w-4 ml-2" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                              <DropdownMenuItem onClick={() => handleBuyCurrencyChange("WETH")}>
+                                Super WETH
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleBuyCurrencyChange("T9K")}>
+                                Token9000 (T9K)
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+
+                        {/* TODO: Add the price of the token */}
+                        {/* <div className="text-sm text-muted-foreground mt-1">
+                                     $5,999.99
+                                  </div> */}
+                      </div>
                     </div>
-                    <span className="font-mono">
-                      {shouldShowOptimizedRoute(routes)
-                        ? "Superchain Optimized"
-                        : routes?.optimizedRoute.steps.find((step) => step.percentage === 100)?.chainName}
-                    </span>
-                    {shouldShowOptimizedRoute(routes) && <Sparkles className="h-4 w-4" />}
-                  </div>
-                </div>
 
-                {/* Review Button */}
-                <Button
-                  className="w-full text-lg py-6 tracking-wider"
-                  disabled={isCalculating || isSwapping || !isConnected || insufficientBalance}
-                  onClick={handleSwap}
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    {isSwapping ? (
-                      <>
-                        <div className="h-4 w-4 animate-spin rounded-[50%] border-2 border-white border-t-transparent" />
-                        Swapping...
-                      </>
-                    ) : isCalculating ? (
-                      <>
-                        <div className="h-4 w-4 animate-spin rounded-[50%] border-2 border-white border-t-transparent" />
-                        Getting Quote
-                      </>
-                    ) : !isConnected ? (
-                      "Connect Wallet"
-                    ) : insufficientBalance ? (
-                      "Insufficient Balance"
-                    ) : (
-                      "Review Transaction"
-                    )}
-                  </div>
-                </Button>
+                    {/* Route Selection Button */}
+                    <div
+                      className={`flex justify-between items-center py-2 ${routes ? "cursor-pointer" : "opacity-50"}`}
+                      onClick={() => routes && setShowRouteModal(true)}
+                    >
+                      <div className="flex items-center gap-2 text-primary">
+                        <div className="flex -space-x-1">
+                          {routes?.optimizedRoute.steps
+                            .filter((step) => step.percentage > 0)
+                            .map((step) => (
+                              <ChainIcon
+                                key={step.chainId}
+                                chainId={step.chainId}
+                                className={`w-5 h-5 border ${
+                                  step === routes.optimizedRoute.steps[0]
+                                    ? "border-primary/50 z-10"
+                                    : "border-secondary/50"
+                                }`}
+                              />
+                            )) ?? <></>}
+                        </div>
+                        <span className="font-mono">
+                          {shouldShowOptimizedRoute(routes)
+                            ? "Superchain Optimized"
+                            : routes?.optimizedRoute.steps.find((step) => step.percentage === 100)?.chainName}
+                        </span>
+                        {shouldShowOptimizedRoute(routes) && <Sparkles className="h-4 w-4" />}
+                      </div>
+                    </div>
 
-                {/* Emergency Withdrawal Button */}
-                <div className="mt-4 text-center">
-                  <Button
-                    variant="outline"
-                    onClick={handleEmergencyWithdrawal}
-                    className="w-full border-red-500/50 hover:bg-red-500/10 text-red-500 font-mono text-sm py-2"
-                  >
-                    <span className="mr-2">⚠️</span>
-                    Emergency Withdrawal
-                  </Button>
-                </div>
+                    {/* Review Button */}
+                    <Button
+                      className="w-full text-lg py-6 tracking-wider"
+                      disabled={isCalculating || isSwapping || !isConnected || insufficientBalance}
+                      onClick={handleSwap}
+                    >
+                      <div className="flex items-center justify-center gap-2">
+                        {isSwapping ? (
+                          <>
+                            <div className="h-4 w-4 animate-spin rounded-[50%] border-2 border-white border-t-transparent" />
+                            Swapping...
+                          </>
+                        ) : isCalculating ? (
+                          <>
+                            <div className="h-4 w-4 animate-spin rounded-[50%] border-2 border-white border-t-transparent" />
+                            Getting Quote
+                          </>
+                        ) : !isConnected ? (
+                          "Connect Wallet"
+                        ) : insufficientBalance ? (
+                          "Insufficient Balance"
+                        ) : (
+                          "Review Transaction"
+                        )}
+                      </div>
+                    </Button>
+
+                    {/* Emergency Withdrawal Button */}
+                    <div className="mt-4 text-center">
+                      <Button
+                        variant="outline"
+                        onClick={handleEmergencyWithdrawal}
+                        className="w-full border-red-500/50 hover:bg-red-500/10 text-red-500 font-mono text-sm py-2"
+                      >
+                        <span className="mr-2">⚠️</span>
+                        Emergency Withdrawal
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                    <Sparkles className="h-12 w-12 text-primary animate-pulse" />
+                    <h3 className="text-2xl font-mono text-primary">Coming Soon</h3>
+                    <p className="text-muted-foreground text-center max-w-sm">
+                      Automated yield optimization and liquidity provision features are currently in development.
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
