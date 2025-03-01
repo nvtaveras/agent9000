@@ -1,10 +1,11 @@
-import { encodeFunctionData, Hex, PublicClient } from "viem";
+import { encodeFunctionData, formatUnits, Hex, parseUnits, PublicClient } from "viem";
 import { getViemClients } from "../viem/chains";
 import { abi as uniswapAbi } from "../ABIs/uniswap";
 import { abi as uniswapFactoryAbi } from "../ABIs/uniswapFactory";
 import { abi as erc20abi } from "../ABIs/erc20";
 import { abi as superswapperAbi } from "../ABIs/superswapper";
 import { EvmWalletProvider } from "@coinbase/agentkit";
+import { UniswapOptimizor } from "./optimizooor";
 
 export interface UniswapPairInfo {
   chainId: number;
@@ -169,24 +170,15 @@ export class UniswapService {
   }
 
   public async getAmountOut(tokenIn: string, tokenOut: string, amountIn: string): Promise<string> {
-    // This is a placeholder implementation
-    // TODO: Implement actual price calculation using reserves
+    const amountInWei = parseUnits(amountIn, 18).toString();
 
-    // Wait for 10 seconds
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    const pairs = await this.fetchPairsOnAllChains(tokenIn, tokenOut);
+    const optimizooor = new UniswapOptimizor();
+    const swaps = optimizooor.getSwapsToExecute(amountInWei, pairs);
 
-    // For now, just return a dummy conversion:
-    // If swapping from ST9000 to ETH: divide by 1000
-    // If swapping from ETH to ST9000: multiply by 1000
-    const amountInBN = BigInt(amountIn);
+    const { totalAmountOut } = optimizooor.calculateSplitAmountOuts(pairs, swaps);
 
-    if (tokenIn === "ST9000" && tokenOut === "ETH") {
-      return (amountInBN / BigInt(2)).toString();
-    } else if (tokenIn === "ETH" && tokenOut === "ST9000") {
-      return (amountInBN * BigInt(4)).toString();
-    }
-
-    return amountIn; // Fallback 1:1 ratio
+    return formatUnits(BigInt(totalAmountOut), 18);
   }
 
   public async getSwapRoutes(tokenIn: string, tokenOut: string, amountIn: string): Promise<SwapRoutes> {

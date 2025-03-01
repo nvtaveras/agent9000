@@ -63,7 +63,7 @@ export class UniswapV2ActionProvider extends ActionProvider<EvmWalletProvider> {
     console.log();
 
     let chains = swaps.map((swap) => BigInt(swap.chainId));
-    let amounts = swaps.map((swap) => BigInt(swap.amountIn));
+    let amounts = swaps.map((swap) => BigInt(swap.amount.toString()));
 
     const amountsSum = amounts.reduce((acc, amount) => acc + amount, BigInt(0));
     const chainId = parseInt(walletProvider.getNetwork().chainId!, 10);

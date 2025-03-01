@@ -4,6 +4,7 @@ import { UniswapPairInfo } from "./service";
 
 const SCALE = BigNumber.from(10).pow(18);
 const PRECISION_SCALE = BigNumber.from(10).pow(36);
+const FEE = BigNumber.from(997).mul(SCALE).div(1000); // 0.997 * 1e18
 
 interface Exchange {
   id: number;
@@ -12,14 +13,19 @@ interface Exchange {
 }
 
 interface Split {
-  id: number;
+  chainId: number;
   amount: BigNumber;
 }
 
-export interface Swap {
+interface SplitAmountOut {
   chainId: number;
-  amountIn: string;
+  amountOut: string;
 }
+
+// export interface Swap {
+//   chainId: number;
+//   amountIn: string;
+// }
 
 export class UniswapOptimizor {
   private readonly scale: BigNumber;
@@ -30,7 +36,7 @@ export class UniswapOptimizor {
     this.precisionScale = PRECISION_SCALE;
   }
 
-  getSwapsToExecute(amountIn: string, pairs: UniswapPairInfo[]): Swap[] {
+  getSwapsToExecute(amountIn: string, pairs: UniswapPairInfo[]): Split[] {
     // Format the exchanges to the expected format
     const exchanges = pairs.map((pair) => ({
       id: pair.chainId,
@@ -42,13 +48,15 @@ export class UniswapOptimizor {
     const splits = this.calculate(amountInBN, exchanges);
     const adjustedSplits = this.adjustSplits(amountInBN, splits);
 
-    return adjustedSplits.map(
-      (split) =>
-        ({
-          chainId: split.id,
-          amountIn: split.amount.toString(),
-        } as Swap),
-    );
+    return adjustedSplits;
+
+    // return adjustedSplits.map(
+    //   (split) =>
+    //     ({
+    //       chainId: split.chainId,
+    //       amountIn: split.amount.toString(),
+    //     } as Swap),
+    // );
   }
 
   calculate(amountIn: BigNumber, exchanges: Exchange[]): Split[] {
@@ -66,7 +74,7 @@ export class UniswapOptimizor {
 
       if (temporarySplit.find((split) => split.amount.isNegative())) {
         currentExchanges = currentExchanges.filter(
-          (exchange) => !temporarySplit.find((split) => split.id === exchange.id && split.amount.isNegative()),
+          (exchange) => !temporarySplit.find((split) => split.chainId === exchange.id && split.amount.isNegative()),
         );
       } else {
         splitFound = true;
@@ -86,7 +94,7 @@ export class UniswapOptimizor {
         .sub(exchanges[i].bucketIn);
 
       split.push({
-        id: exchanges[i].id,
+        chainId: exchanges[i].id,
         amount: exchangeAmount,
       });
     }
@@ -100,7 +108,7 @@ export class UniswapOptimizor {
       // Proportional adjustment
       let adjustmentFactor = totalAmount.mul(this.scale).div(currentSum);
       splits = splits.map((split) => ({
-        id: split.id,
+        chainId: split.chainId,
         amount: split.amount.mul(adjustmentFactor).div(this.scale),
       }));
 
@@ -115,54 +123,60 @@ export class UniswapOptimizor {
     return splits;
   }
 
-  getTestPairs(): UniswapPairInfo[] {
-    // For test purposes only.
-    // with const testAmountIn = parseUnits("100", 18); // 100 WETH
-    // The expected output is:
-    // [
-    //   { chainId: 123, amountIn: '277777777777777777780' },
-    //   { chainId: 234, amountIn: '138888888888888888888' },
-    //   { chainId: 345, amountIn: '55555555555555555555' },
-    //   { chainId: 456, amountIn: '27777777777777777777' }
-    // ]
+  // ======== Optimizooor code for calculating amount out from splits
+  calculateAmountOut(amountIn: BigNumber, reserveIn: BigNumber, reserveOut: BigNumber): BigNumber {
+    const numerator = amountIn.mul(reserveOut).mul(FEE);
+    const denominator = reserveIn.add(amountIn).mul(SCALE);
+    return numerator.div(denominator);
+  }
 
-    return [
-      {
-        // id: 123,
-        chainId: 123,
-        address: "0x123",
-        tokenIn: "WETH",
-        tokenOut: "DAI",
-        reserveIn: parseUnits("1000", 18).toString(), // 1000 WETH
-        reserveOut: parseUnits("2000000", 18).toString(), // 2,000,000 DAI
-      },
-      {
-        // id: 234,
-        chainId: 234,
-        address: "0x234",
-        tokenIn: "WETH",
-        tokenOut: "DAI",
-        reserveIn: parseUnits("500", 18).toString(), // 500 WETH
-        reserveOut: parseUnits("1000000", 18).toString(), // 1,000,000 DAI
-      },
-      {
-        // id: 345,
-        chainId: 345,
-        address: "0x345",
-        tokenIn: "WETH",
-        tokenOut: "DAI",
-        reserveIn: parseUnits("200", 18).toString(), // 200 WETH
-        reserveOut: parseUnits("400000", 18).toString(), // 400,000 DAI
-      },
-      {
-        // id: 456,
-        chainId: 456,
-        address: "0x456",
-        tokenIn: "WETH",
-        tokenOut: "DAI",
-        reserveIn: parseUnits("100", 18).toString(), // 100 WETH
-        reserveOut: parseUnits("200000", 18).toString(), // 200,000 DAI
-      },
-    ];
+  calculateSplitAmountOuts(
+    exchanges: UniswapPairInfo[],
+    splits: Split[],
+  ): { splitAmountOuts: SplitAmountOut[]; totalAmountOut: string } {
+    const splitAmountOuts: SplitAmountOut[] = [];
+    let totalAmountOut = BigNumber.from(0);
+
+    for (const exchange of exchanges) {
+      if (!splits.find((split) => split.chainId === exchange.chainId)) {
+        splitAmountOuts.push({
+          chainId: exchange.chainId,
+          amountOut: "0",
+        });
+      } else {
+        const split = splits.find((split) => split.chainId === exchange.chainId);
+        if (!split) {
+          throw new Error("Split not found");
+        }
+        const amountOut = this.calculateAmountOut(
+          BigNumber.from(split.amount),
+          BigNumber.from(exchange.reserveIn),
+          BigNumber.from(exchange.reserveOut),
+        );
+        splitAmountOuts.push({
+          chainId: exchange.chainId,
+          amountOut: amountOut.toString(),
+        });
+      }
+    }
+    totalAmountOut = splitAmountOuts.reduce((acc, curr) => acc.add(curr.amountOut), BigNumber.from(0));
+    return { splitAmountOuts, totalAmountOut: totalAmountOut.toString() };
+  }
+
+  calculateSingleExchangeAmountOuts(exchanges: UniswapPairInfo[], splits: Split[]): SplitAmountOut[] {
+    const splitAmountOuts: SplitAmountOut[] = [];
+    const totalAmountIn = splits.reduce((acc, curr) => acc.add(BigNumber.from(curr.amount)), BigNumber.from(0));
+    for (const exchange of exchanges) {
+      const amountOut = this.calculateAmountOut(
+        totalAmountIn,
+        BigNumber.from(exchange.reserveIn),
+        BigNumber.from(exchange.reserveOut),
+      );
+      splitAmountOuts.push({
+        chainId: exchange.chainId,
+        amountOut: amountOut.toString(),
+      });
+    }
+    return splitAmountOuts;
   }
 }
