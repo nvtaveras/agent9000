@@ -685,7 +685,12 @@ export default function CryptoSwap() {
             {routes && txStatus === "pending" && (
               <div
                 className="route-animation-container rounded-lg border border-primary/20 bg-primary/5 p-4 my-2"
-                style={{ height: "240px" }}
+                style={{
+                  height: `${Math.min(
+                    400,
+                    200 + routes.optimizedRoute.steps.filter((step) => step.percentage > 0).length * 50,
+                  )}px`,
+                }}
               >
                 <h3 className="text-xs text-muted-foreground mb-4 font-mono text-sm">Cross-Chain Routes</h3>
 
@@ -693,7 +698,7 @@ export default function CryptoSwap() {
                 <div className="relative h-full flex items-center">
                   {/* Wallet Icon (Source) */}
                   <div className="absolute left-2 top-1/2 -translate-y-1/2 z-20">
-                    <div className="w-10 h-10 rounded-full border-2 border-primary/50 flex items-center justify-center bg-background">
+                    <div className="w-12 h-12 rounded-full border-2 border-primary/50 flex items-center justify-center bg-background">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 24 24"
@@ -712,7 +717,7 @@ export default function CryptoSwap() {
                   </div>
 
                   {/* Center Chain Icons */}
-                  <div className="absolute left-1/2 transform -translate-x-1/2 flex flex-col items-center z-20 space-y-10">
+                  <div className="absolute left-1/2 transform -translate-x-1/2 flex flex-col items-center z-20 space-y-14">
                     {routes.optimizedRoute.steps
                       .filter((step) => step.percentage > 0)
                       .sort((a, b) => b.percentage - a.percentage)
@@ -734,7 +739,7 @@ export default function CryptoSwap() {
 
                   {/* Wallet Icon (Destination) */}
                   <div className="absolute right-2 top-1/2 -translate-y-1/2 z-20">
-                    <div className="w-10 h-10 rounded-full border-2 border-primary/50 flex items-center justify-center bg-background">
+                    <div className="w-12 h-12 rounded-full border-2 border-primary/50 flex items-center justify-center bg-background">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 24 24"
@@ -755,7 +760,7 @@ export default function CryptoSwap() {
                   {/* Path Lines with curved SVG paths */}
                   <svg
                     className="absolute w-full h-full top-0 left-0 z-10"
-                    viewBox="0 0 400 240"
+                    viewBox="0 0 400 320"
                     preserveAspectRatio="none"
                   >
                     {routes.optimizedRoute.steps
@@ -763,27 +768,52 @@ export default function CryptoSwap() {
                       .sort((a, b) => b.percentage - a.percentage)
                       .map((step, index, array) => {
                         const totalSteps = array.length;
-                        const centerY = 120; // Middle of container
-                        const spacing = 50; // Increased spacing between paths
+                        const centerY = 160; // Middle of container
+                        const spacing = 70; // Increased spacing between paths
                         const offset = (index - (totalSteps - 1) / 2) * spacing;
                         const pathY = centerY + offset;
-
-                        // For 3 chains, index 1 is the middle one
-                        const isMiddleToken = totalSteps === 3 ? index === 1 : Math.abs(offset) < 10;
+                        const chainX = 200; // Center X position for chain icon
 
                         return (
                           <Fragment key={`path-${step.chainId}`}>
-                            {/* Path */}
+                            {/* Static background path from source to chain */}
                             <path
-                              d={
-                                isMiddleToken
-                                  ? `M 15,120 L 385,120` // Straight line for middle token
-                                  : `M 15,120 Q 100,${pathY} 200,${pathY} Q 300,${pathY} 385,120`
-                              } // Curved for others
-                              stroke="rgba(0, 255, 146, 0.3)"
+                              d={`M 15,160 Q 70,${pathY} ${chainX},${pathY}`}
+                              stroke="rgba(0, 255, 146, 0.1)"
                               strokeWidth="2"
                               fill="none"
                               strokeDasharray="5,5"
+                            />
+
+                            {/* Animated highlight path from source to chain */}
+                            <path
+                              className={`path-highlight-source-${index}`}
+                              d={`M 15,160 Q 70,${pathY} ${chainX},${pathY}`}
+                              stroke="rgba(0, 255, 146, 0.8)"
+                              strokeWidth="3"
+                              fill="none"
+                              strokeDasharray="2,30"
+                              strokeLinecap="round"
+                            />
+
+                            {/* Static background path from chain to destination */}
+                            <path
+                              d={`M ${chainX},${pathY} Q 330,${pathY} 385,160`}
+                              stroke="rgba(0, 255, 146, 0.1)"
+                              strokeWidth="2"
+                              fill="none"
+                              strokeDasharray="5,5"
+                            />
+
+                            {/* Animated highlight path from chain to destination */}
+                            <path
+                              className={`path-highlight-dest-${index}`}
+                              d={`M ${chainX},${pathY} Q 330,${pathY} 385,160`}
+                              stroke="rgba(0, 255, 146, 0.8)"
+                              strokeWidth="3"
+                              fill="none"
+                              strokeDasharray="2,30"
+                              strokeLinecap="round"
                             />
                           </Fragment>
                         );
@@ -791,14 +821,19 @@ export default function CryptoSwap() {
                   </svg>
 
                   {/* Moving Tokens */}
-                  {routes.optimizedRoute.steps
+                  {/* {routes.optimizedRoute.steps
                     .filter((step) => step.percentage > 0)
                     .sort((a, b) => b.percentage - a.percentage)
                     .map((step, index) => (
-                      <div key={`token-${step.chainId}`} className={`moving-token-${index} absolute z-30`}>
-                        <div className="h-4 w-4 rounded-full bg-primary/80 shadow-[0_0_8px_rgba(0,255,146,0.5)]"></div>
-                      </div>
-                    ))}
+                      <Fragment key={`token-${step.chainId}`}>
+                        <div className={`moving-token-source-${index} absolute z-30`}>
+                          <div className="h-4 w-4 rounded-full bg-primary/80 shadow-[0_0_8px_rgba(0,255,146,0.5)]"></div>
+                        </div>
+                        <div className={`moving-token-dest-${index} absolute z-30`}>
+                          <div className="h-4 w-4 rounded-full bg-primary/80 shadow-[0_0_8px_rgba(0,255,146,0.5)]"></div>
+                        </div>
+                      </Fragment>
+                    ))} */}
                 </div>
 
                 {/* Information below animations */}
@@ -1002,95 +1037,129 @@ export default function CryptoSwap() {
           .sort((a, b) => b.percentage - a.percentage)
           .map((step, index, array) => {
             const totalSteps = array.length;
-            const centerY = 120;
-            const spacing = 50;
+            const centerY = 160;
+            const spacing = 70;
             const offset = (index - (totalSteps - 1) / 2) * spacing;
             const pathY = centerY + offset;
-
-            // Check if this is the middle token (or closest to middle)
-            const isMiddleToken = totalSteps === 3 ? index === 1 : Math.abs(offset) < spacing / 2;
+            const chainX = 200; // Center X position for chain icon
 
             return `
-                     .moving-token-${index} {
-                        animation: moveAcrossChains-${index} 4s infinite;
-                        animation-delay: ${index * 0.8}s;
-                        position: absolute;
-                        transform: translate(-50%, -50%);
-                     }
-                     
-                     @keyframes moveAcrossChains-${index} {
-                        0%, 5% {
-                           left: 15px;
-                           top: 120px;
-                           transform: translate(-50%, -50%) scale(0.8);
-                           opacity: 0;
-                        }
-                        10% {
-                           opacity: 1;
-                           transform: translate(-50%, -50%) scale(1);
-                        }
-                        ${
-                          isMiddleToken
-                            ? `
-                        /* Straight line path animation for middle token */
-                        25% {
-                           left: 100px;
-                           top: 120px;
-                           transform: translate(-50%, -50%) scale(1);
-                        }
-                        /* Pass through the chain icon */
-                        50% {
-                           left: 200px;
-                           top: 120px;
-                           transform: translate(-50%, -50%) scale(1.2);
-                        }
-                        75% {
-                           left: 300px;
-                           top: 120px;
-                           transform: translate(-50%, -50%) scale(1);
-                        }
-                        `
-                            : `
-                        /* Curved path animation for outer tokens */
-                        15% {
-                           left: 50px;
-                           top: ${120 + (pathY - 120) * 0.2}px;
-                           transform: translate(-50%, -50%) scale(1);
-                        }
-                        30% {
-                           left: 100px;
-                           top: ${pathY}px;
-                           transform: translate(-50%, -50%) scale(1);
-                        }
-                        /* Pass through the chain icon */
-                        50% {
-                           left: 200px;
-                           top: ${pathY}px;
-                           transform: translate(-50%, -50%) scale(1.2);
-                        }
-                        70% {
-                           left: 300px;
-                           top: ${pathY}px;
-                           transform: translate(-50%, -50%) scale(1);
-                        }
-                        85% {
-                           left: 350px;
-                           top: ${120 + (pathY - 120) * 0.2}px;
-                           transform: translate(-50%, -50%) scale(1);
-                        }
-                        `
-                        }
-                        90% {
-                           opacity: 1;
-                        }
-                        95%, 100% {
-                           left: 385px;
-                           top: 120px;
-                           transform: translate(-50%, -50%) scale(0.8);
-                           opacity: 0;
-                        }
-                     }
-                  `;
+              /* Path highlight animation - Source to Chain */
+              .path-highlight-source-${index} {
+                animation: pathPulseSource-${index} 3s infinite;
+                animation-delay: ${index * 0.3}s;
+                stroke-dashoffset: 100;
+              }
+              
+              @keyframes pathPulseSource-${index} {
+                0% {
+                  stroke-dashoffset: 100;
+                  opacity: 0;
+                }
+                10% {
+                  opacity: 1;
+                }
+                90% {
+                  stroke-dashoffset: -100;
+                  opacity: 1;
+                }
+                100% {
+                  stroke-dashoffset: -100;
+                  opacity: 0;
+                }
+              }
+              
+              /* Path highlight animation - Chain to Destination */
+              .path-highlight-dest-${index} {
+                animation: pathPulseDest-${index} 3s infinite;
+                animation-delay: ${index * 0.3 + 1.5}s;
+                stroke-dashoffset: 100;
+              }
+              
+              @keyframes pathPulseDest-${index} {
+                0% {
+                  stroke-dashoffset: 100;
+                  opacity: 0;
+                }
+                10% {
+                  opacity: 1;
+                }
+                90% {
+                  stroke-dashoffset: -100;
+                  opacity: 1;
+                }
+                100% {
+                  stroke-dashoffset: -100;
+                  opacity: 0;
+                }
+              }
+              
+              /* Animation for token from source to chain */
+              .moving-token-source-${index} {
+                animation: moveSourceToChain-${index} 3s infinite;
+                animation-delay: ${index * 0.3}s;
+                position: absolute;
+                transform: translate(-50%, -50%);
+              }
+              
+              @keyframes moveSourceToChain-${index} {
+                0%, 5% {
+                  left: 15px;
+                  top: 160px;
+                  transform: translate(-50%, -50%) scale(0.8);
+                  opacity: 0;
+                }
+                10% {
+                  opacity: 1;
+                  transform: translate(-50%, -50%) scale(1);
+                }
+                45% {
+                  left: ${chainX}px;
+                  top: ${pathY}px;
+                  transform: translate(-50%, -50%) scale(1.2);
+                  opacity: 1;
+                }
+                50%, 100% {
+                  left: ${chainX}px;
+                  top: ${pathY}px;
+                  transform: translate(-50%, -50%) scale(0.8);
+                  opacity: 0;
+                }
+              }
+              
+              /* Animation for token from chain to destination */
+              .moving-token-dest-${index} {
+                animation: moveChainToDest-${index} 3s infinite;
+                animation-delay: ${index * 0.3 + 1.5}s; /* Delay after source-to-chain animation */
+                position: absolute;
+                transform: translate(-50%, -50%);
+              }
+              
+              @keyframes moveChainToDest-${index} {
+                0%, 5% {
+                  left: ${chainX}px;
+                  top: ${pathY}px;
+                  transform: translate(-50%, -50%) scale(0.8);
+                  opacity: 0;
+                }
+                10% {
+                  opacity: 1;
+                  transform: translate(-50%, -50%) scale(1);
+                }
+                45% {
+                  left: 385px;
+                  top: 160px;
+                  transform: translate(-50%, -50%) scale(1.2);
+                  opacity: 1;
+                }
+                50%, 100% {
+                  left: 385px;
+                  top: 160px;
+                  transform: translate(-50%, -50%) scale(0.8);
+                  opacity: 0;
+                }
+              }
+            `;
           })
           .join("\n") || ""}
       `}</style>
