@@ -193,6 +193,8 @@ export default function CryptoSwap() {
   const shouldShowOptimizedRoute = (routes: SwapRoutes | null) => {
     if (!routes) return false;
 
+    console.log(routes);
+
     const activeSteps = routes.optimizedRoute.steps.filter((step) => step.percentage > 0);
 
     // If there's only one active step
@@ -489,7 +491,7 @@ export default function CryptoSwap() {
                     <span className="font-mono">
                       {shouldShowOptimizedRoute(routes)
                         ? "Superchain Optimized"
-                        : routes?.optimizedRoute.steps[0]?.chainName}
+                        : routes?.optimizedRoute.steps.find((step) => step.percentage === 100)?.chainName}
                     </span>
                     {shouldShowOptimizedRoute(routes) && <Sparkles className="h-4 w-4" />}
                   </div>
@@ -538,47 +540,50 @@ export default function CryptoSwap() {
           <div className="space-y-2">
             {routes && (
               <>
-                {/* Superchain Route */}
-                <div className="superchain-route-container relative flex flex-col gap-3 p-4 rounded-lg bg-primary/5 animate-border overflow-hidden">
-                  <div className="flex items-center justify-between relative z-10">
-                    <div className="flex items-center gap-2">
-                      <div className="flex -space-x-1">
-                        {routes.optimizedRoute.steps
-                          .filter((step) => step.percentage > 0)
-                          .sort((a, b) => b.percentage - a.percentage)
-                          .map((step) => (
-                            <ChainIcon key={step.chainId} chainId={step.chainId} className="h-7 w-7 border" />
-                          ))}
+                {/* Superchain Route - Only shown when there's more than one active step */}
+                {shouldShowOptimizedRoute(routes) && (
+                  <div className="superchain-route-container relative flex flex-col gap-3 p-4 rounded-lg bg-primary/5 animate-border overflow-hidden">
+                    <div className="flex items-center justify-between relative z-10">
+                      <div className="flex items-center gap-2">
+                        <div className="flex -space-x-1">
+                          {routes.optimizedRoute.steps
+                            .filter((step) => step.percentage > 0)
+                            .sort((a, b) => b.percentage - a.percentage)
+                            .map((step) => (
+                              <ChainIcon key={step.chainId} chainId={step.chainId} className="h-7 w-7 border" />
+                            ))}
+                        </div>
+                        <span className="text-base font-mono">Superchain Optimized</span>
+                        <Sparkles className="h-5 w-5 text-primary" />
                       </div>
-                      <span className="text-base font-mono">Superchain Optimized</span>
-                      <Sparkles className="h-5 w-5 text-primary" />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-base">
+                      {routes.optimizedRoute.steps
+                        .filter((step) => step.percentage > 0)
+                        .sort((a, b) => b.percentage - a.percentage)
+                        .map((step) => (
+                          <div key={step.chainId} className="flex items-center gap-2">
+                            <ChainIcon chainId={step.chainId} className="h-5 w-5" />
+                            <span className="font-mono">{step.percentage}%</span>
+                          </div>
+                        ))}
+                    </div>
+
+                    <div className="text-sm font-mono text-primary pt-1">
+                      Output: {routes.optimizedRoute.totalAmountOut} {buyCurrency}
                     </div>
                   </div>
-
-                  <div className="grid grid-cols-2 gap-2 text-base">
-                    {routes.optimizedRoute.steps
-                      .filter((step) => step.percentage > 0)
-                      .sort((a, b) => b.percentage - a.percentage)
-                      .map((step) => (
-                        <div key={step.chainId} className="flex items-center gap-2">
-                          <ChainIcon chainId={step.chainId} className="h-5 w-5" />
-                          <span className="font-mono">{step.percentage}%</span>
-                        </div>
-                      ))}
-                  </div>
-
-                  <div className="text-sm font-mono text-primary pt-1">
-                    Output: {routes.optimizedRoute.totalAmountOut} {buyCurrency}
-                  </div>
-                </div>
+                )}
 
                 {/* Single-Chain Routes */}
                 <div className="text-sm text-muted-foreground font-mono pt-2">Single Chain Swaps:</div>
                 {routes.singleChainRoutes.map((route: SingleChainRoute) => {
-                  const isHighlighted =
-                    routes &&
-                    !shouldShowOptimizedRoute(routes) &&
-                    route.chainId === routes.optimizedRoute.steps[0].chainId;
+                  const routeHas100Percent = routes?.optimizedRoute.steps.find((step) => step.percentage === 100)?.chainId === route.chainId;
+
+                  const isHighlighted = routes && !shouldShowOptimizedRoute(routes) && routeHas100Percent;
+
+                  console.log(`highlighted: ${isHighlighted}`);
 
                   return (
                     <div
