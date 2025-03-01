@@ -263,47 +263,73 @@ export default function CryptoSwap() {
                               </div>
                            </div>
 
-                  <div className="p-4 pt-2">
-                    <div className="text-sm text-muted-foreground font-mono mb-2">Buy</div>
-                    <div className="flex items-center">
-                      {isCalculating ? (
-                        <Skeleton className="h-8 flex-1" />
-                      ) : (
-                        <Input
-                          type="text"
-                          value={buyAmount}
-                          onChange={(e) => setBuyAmount(e.target.value)}
-                          className="border-0 text-5xl md:text-4xl font-normal p-0 h-auto focus-visible:ring-0"
-                        />
-                      )}
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="outline" className="button-hacker ml-2">
-                            <div className="w-6 h-6 rounded-none border border-primary/50 flex items-center justify-center mr-2">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="h-3 w-3 text-primary"
-                                viewBox="0 0 24 24"
-                              >
-                                <path d="M12 2L6 12L12 16L18 12L12 2Z" fill="currentColor" />
-                                <path d="M12 16V22L18 12L12 16Z" fill="currentColor" opacity="0.6" />
-                                <path d="M12 16L6 12L12 22V16Z" fill="currentColor" opacity="0.6" />
-                              </svg>
-                            </div>
-                            {buyCurrency}
-                            <ChevronDown className="h-4 w-4 ml-2" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <DropdownMenuItem onClick={() => handleBuyCurrencyChange("WETH")}>
-                            Super WETH
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleBuyCurrencyChange("T9K")}>
-                            Token9000 (T9K)
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
+                           <div className="p-4 pt-2">
+                              <div className="text-sm text-muted-foreground font-mono mb-2">
+                                 Buy
+                              </div>
+                              <div className="flex items-center">
+                                 {isCalculating ? (
+                                    <Skeleton className="h-8 flex-1" />
+                                 ) : (
+                                    <Input
+                                       type="text"
+                                       value={buyAmount}
+                                       onChange={(e) =>
+                                          setBuyAmount(e.target.value)
+                                       }
+                                       className="border-0 text-5xl md:text-4xl font-normal p-0 h-auto focus-visible:ring-0"
+                                    />
+                                 )}
+                                 <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                       <Button
+                                          variant="outline"
+                                          className="button-hacker ml-2"
+                                       >
+                                          <div className="w-6 h-6 rounded-none border border-primary/50 flex items-center justify-center mr-2">
+                                             <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                className="h-3 w-3 text-primary"
+                                                viewBox="0 0 24 24"
+                                             >
+                                                <path
+                                                   d="M12 2L6 12L12 16L18 12L12 2Z"
+                                                   fill="currentColor"
+                                                />
+                                                <path
+                                                   d="M12 16V22L18 12L12 16Z"
+                                                   fill="currentColor"
+                                                   opacity="0.6"
+                                                />
+                                                <path
+                                                   d="M12 16L6 12L12 22V16Z"
+                                                   fill="currentColor"
+                                                   opacity="0.6"
+                                                />
+                                             </svg>
+                                          </div>
+                                          {buyCurrency}
+                                          <ChevronDown className="h-4 w-4 ml-2" />
+                                       </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent>
+                                       <DropdownMenuItem
+                                          onClick={() =>
+                                             handleBuyCurrencyChange("WETH")
+                                          }
+                                       >
+                                          Super WETH
+                                       </DropdownMenuItem>
+                                       <DropdownMenuItem
+                                          onClick={() =>
+                                             handleBuyCurrencyChange("T9K")
+                                          }
+                                       >
+                                          Token9000 (T9K)
+                                       </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                 </DropdownMenu>
+                              </div>
 
                               {/* TODO: Add the price of the token */}
                               {/* <div className="text-sm text-muted-foreground mt-1">
@@ -389,81 +415,77 @@ export default function CryptoSwap() {
 
          {/* Add the Routes Modal */}
          <Dialog open={showRouteModal} onOpenChange={setShowRouteModal}>
-            <DialogContent className="sm:max-w-md">
-               <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2">
-                     <span>Available routes</span>
+            <DialogContent className="sm:max-w-[400px] p-4">
+               <DialogHeader className="pb-2">
+                  <DialogTitle className="text-sm">
+                     Available Routes
                   </DialogTitle>
                </DialogHeader>
-               <div className="space-y-4 py-4">
+               <div className="space-y-2">
                   {routes && (
                      <>
                         {/* Superchain Route */}
-                        <div className="flex flex-col gap-4 p-4 rounded-lg border border-primary/20 bg-primary/5 backdrop-blur-sm relative overflow-hidden">
-                           {/* Add a subtle gradient overlay */}
-                           <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent pointer-events-none" />
-
-                           <div className="flex items-center justify-between relative">
+                        <div className="flex flex-col gap-2 p-3 rounded-lg border border-primary/20 bg-primary/5">
+                           <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
                                  <div className="flex -space-x-1">
                                     {routes.optimizedRoute.steps.map((step) => (
                                        <ChainIcon
                                           key={step.chainId}
                                           chainId={step.chainId}
-                                          className="h-8 w-8 border-2"
+                                          className="h-6 w-6 border"
                                        />
                                     ))}
                                  </div>
-                                 <span className="font-mono text-lg">
+                                 <span className="text-sm font-mono">
                                     Superchain Optimized
                                  </span>
-                                 <Sparkles className="h-5 w-5 text-primary" />
+                                 <Sparkles className="h-4 w-4 text-primary" />
                               </div>
                            </div>
 
-                           <div className="flex flex-col gap-2">
+                           <div className="grid grid-cols-2 gap-1 text-sm">
                               {routes.optimizedRoute.steps.map((step) => (
                                  <div
                                     key={step.chainId}
-                                    className="flex items-center gap-2 p-2"
+                                    className="flex items-center gap-2"
                                  >
-                                    <div className="w-16 text-right font-mono">
-                                       {step.percentage}%
-                                    </div>
                                     <ChainIcon
                                        chainId={step.chainId}
-                                       className="h-6 w-6"
+                                       className="h-4 w-4"
                                     />
+                                    <span className="font-mono">
+                                       {step.percentage}%
+                                    </span>
                                  </div>
                               ))}
                            </div>
 
-                           <div className="flex flex-col gap-1 mt-2 font-mono text-sm">
-                              <div className="text-primary">
-                                 Estimated Output:{" "}
-                                 {routes.optimizedRoute.totalAmountOut} ETH
-                              </div>
+                           <div className="text-xs font-mono text-primary pt-1">
+                              Output: {routes.optimizedRoute.totalAmountOut} ETH
                            </div>
                         </div>
 
                         {/* Single-Chain Routes */}
+                        <div className="text-xs text-muted-foreground font-mono pt-1">
+                           Single Chain Swaps:
+                        </div>
                         {routes.singleChainRoutes.map(
                            (route: SingleChainRoute) => (
                               <div
                                  key={route.chainId}
-                                 className="space-y-2 opacity-50 border border-muted/20 rounded-sm p-3"
+                                 className="flex items-center justify-between p-2 opacity-50 border border-muted/20 rounded-sm text-xs"
                               >
                                  <div className="flex items-center gap-2">
-                                    <ChainIcon chainId={route.chainId} />
-                                    <span>Single-Chain Swap</span>
+                                    <ChainIcon
+                                       chainId={route.chainId}
+                                       className="h-4 w-4"
+                                    />
+                                    <span>{route.chainName}</span>
                                  </div>
-                                 <div className="text-sm text-muted-foreground">
-                                    Route: {route.chainName}
-                                 </div>
-                                 <div className="text-sm">
-                                    Estimated Output: {route.amountOut}{" "}
-                                    {buyCurrency}
-                                 </div>
+                                 <span className="font-mono">
+                                    {route.amountOut} {buyCurrency}
+                                 </span>
                               </div>
                            )
                         )}
