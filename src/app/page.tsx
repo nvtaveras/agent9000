@@ -88,15 +88,17 @@ export default function CryptoSwap() {
       setSellAmount(e.target.value);
    };
 
-   // Add this effect to fetch routes when modal opens
+   // Update this effect to fetch routes when inputs change
    useEffect(() => {
-      if (showRouteModal) {
+      if (sellAmount && parseFloat(sellAmount) > 0) {
          uniswap
             .getSwapRoutes(sellCurrency, buyCurrency, sellAmount)
             .then(setRoutes)
             .catch(console.error);
+      } else {
+         setRoutes(null);
       }
-   }, [showRouteModal, sellCurrency, buyCurrency, sellAmount, uniswap]);
+   }, [sellAmount, sellCurrency, buyCurrency, uniswap]);
 
    const handleSwap = async () => {
       if (!walletClient || !isConnected) {
@@ -350,8 +352,10 @@ export default function CryptoSwap() {
 
                         {/* Superchain Optimized */}
                         <div
-                           className="flex justify-between items-center py-2 cursor-pointer"
-                           onClick={() => setShowRouteModal(true)}
+                           className={`flex justify-between items-center py-2 ${
+                              routes ? "cursor-pointer" : "opacity-50"
+                           }`}
+                           onClick={() => routes && setShowRouteModal(true)}
                         >
                            <div className="flex items-center gap-2 text-primary">
                               <div className="flex -space-x-1">
@@ -372,10 +376,6 @@ export default function CryptoSwap() {
                                  Superchain Optimized
                               </span>
                               <Sparkles className="h-4 w-4" />
-                           </div>
-                           <div className="flex items-center gap-1 text-muted-foreground">
-                              <span>&lt; 0.01</span>
-                              <ChevronDown className="h-4 w-4" />
                            </div>
                         </div>
 
