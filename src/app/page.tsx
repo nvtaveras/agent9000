@@ -49,6 +49,9 @@ export default function CryptoSwap() {
    const [buyTokenBalance, setBuyTokenBalance] = useState<string>("0");
    const [insufficientBalance, setInsufficientBalance] = useState(false);
    const [isRefreshingBalances, setIsRefreshingBalances] = useState(false);
+   const [showTxModal, setShowTxModal] = useState(false);
+   const [txTimer, setTxTimer] = useState(0);
+   const [txInterval, setTxInterval] = useState<NodeJS.Timeout | null>(null);
 
    const uniswap = useMemo(() => new UniswapService(), []);
 
@@ -113,6 +116,8 @@ export default function CryptoSwap() {
       }
 
       setIsSwapping(true);
+      setShowTxModal(true);
+
       try {
          const SUPERSWAPPER_ADDRESS =
             "0x42d68F02E890fd91da05E24935e549bBeeCb4Dad";
@@ -122,7 +127,7 @@ export default function CryptoSwap() {
          const tokenInAddress =
             UniswapService.knownTokensPerChain[chainId][sellCurrency];
 
-         // Get the routes from the service (keeping this for now)
+         // Get the routes from the service
          const routes = await uniswap.getSwapRoutes(
             sellCurrency,
             buyCurrency,
@@ -169,6 +174,12 @@ export default function CryptoSwap() {
          console.log(`Swap tx: ${swapHash}`);
          setTxHash(swapHash);
 
+         // Start the timer only after the transaction is sent
+         const interval = setInterval(() => {
+            setTxTimer((prev) => prev + 1);
+         }, 1000);
+         setTxInterval(interval);
+
          // Wait for the transaction to be confirmed
          if (publicClient) {
             await publicClient.waitForTransactionReceipt({
@@ -182,6 +193,14 @@ export default function CryptoSwap() {
          console.error("Swap failed:", error);
       } finally {
          setIsSwapping(false);
+         setShowTxModal(false);
+
+         // Clear the timer
+         if (txInterval) {
+            clearInterval(txInterval);
+            setTxInterval(null);
+         }
+         setTxTimer(0);
       }
    };
 
@@ -274,6 +293,15 @@ export default function CryptoSwap() {
          setInsufficientBalance(false);
       }
    }, [isConnected, sellAmount, sellTokenBalance]);
+
+   // Clean up timer when component unmounts
+   useEffect(() => {
+      return () => {
+         if (txInterval) {
+            clearInterval(txInterval);
+         }
+      };
+   }, [txInterval]);
 
    return (
       <div className="flex flex-col min-h-screen matrix-bg">
@@ -707,12 +735,161 @@ export default function CryptoSwap() {
                </div>
             </DialogContent>
          </Dialog>
+ 
 
-         {txHash && (
-            <div className="mt-4 p-4 border border-primary/20 rounded-sm">
-               <p className="text-sm font-mono">Transaction Hash: {txHash}</p>
-            </div>
-         )}
+         {/* Transaction Progress Modal */}
+         <Dialog
+            open={showTxModal}
+            onOpenChange={(open) => {
+               if (!open && txInterval) {
+                  clearInterval(txInterval);
+                  setTxInterval(null);
+                  setTxTimer(0);
+               }
+               setShowTxModal(open);
+            }}
+         >
+            <DialogContent className="sm:max-w-[400px] p-4">
+               <DialogHeader className="pb-2">
+                  <DialogTitle className="text-lg font-mono">
+                     Superchain Transfer in Progress
+                  </DialogTitle>
+               </DialogHeader>
+
+               <div className="space-y-4">
+                  {/* Spinner and Timer */}
+                  <div className="flex flex-col items-center justify-center py-3">
+                     <div className="h-12 w-12 animate-spin rounded-[50%] border-4 border-primary border-t-transparent mb-2" />
+                     <div className="text-lg font-mono">
+                        {Math.floor(txTimer / 60)
+                           .toString()
+                           .padStart(2, "0")}
+                        :{(txTimer % 60).toString().padStart(2, "0")}
+                     </div>
+                  </div>
+
+                  {/* Route Animation */}
+                  {routes && (
+                     <div className="route-animation-container rounded-lg border border-primary/20 bg-primary/5 p-4 my-2">
+                        <h3 className="text-primary font-mono mb-3 text-sm">
+                           Cross-Chain Route
+                        </h3>
+                        <div className="relative h-16 flex items-center">
+                           {/* Start Token */}
+                           <div className="absolute left-2 z-20 token-icon">
+                              <div className="w-8 h-8 rounded-full border-2 border-primary/50 flex items-center justify-center bg-background">
+                                 <span className="text-primary text-sm font-mono">
+                                    {sellCurrency}
+                                 </span>
+                              </div>
+                           </div>
+
+                           {/* Moving Token Animation */}
+                           <div className="moving-token absolute z-30 left-2">
+                              <div className="h-4 w-4 rounded-full bg-primary/80 shadow-[0_0_8px_rgba(0,255,146,0.5)]"></div>
+                           </div>
+
+                           {/* Path Line */}
+                           <div className="absolute left-10 right-10 h-0.5 border-t-2 border-dashed border-primary/30"></div>
+
+                           {/* Chain Icons */}
+                           <div className="absolute right-2 flex items-center -space-x-2">
+                              {routes.optimizedRoute.steps
+                                 .filter((step) => step.percentage > 0)
+                                 .sort((a, b) => b.percentage - a.percentage)
+                                 .map((step, index) => (
+                                    <div
+                                       key={step.chainId}
+                                       className="chain-icon z-10"
+                                       style={{ right: `${index * 10}px` }}
+                                    >
+                                       <ChainIcon
+                                          chainId={step.chainId}
+                                          className="h-8 w-8 border-2 border-primary/50 rounded-full p-0.5 bg-background"
+                                       />
+                                    </div>
+                                 ))}
+                           </div>
+                        </div>
+
+                        {/* Chain splits - percentages */}
+                        <div className="grid grid-cols-2 gap-2 mt-3">
+                           {routes.optimizedRoute.steps
+                              .filter((step) => step.percentage > 0)
+                              .sort((a, b) => b.percentage - a.percentage)
+                              .map((step) => (
+                                 <div
+                                    key={step.chainId}
+                                    className="flex items-center gap-2"
+                                 >
+                                    <ChainIcon
+                                       chainId={step.chainId}
+                                       className="h-4 w-4"
+                                    />
+                                    <span className="font-mono text-xs">
+                                       {step.chainName}:{" "}
+                                       <span className="text-primary">
+                                          {step.percentage}%
+                                       </span>
+                                    </span>
+                                 </div>
+                              ))}
+                        </div>
+                     </div>
+                  )}
+
+                  {/* Information Text */}
+                  <div className="text-xs text-muted-foreground">
+                     <p className="mb-2">
+                        Your transaction is being processed across multiple
+                        chains simultaneously.
+                     </p>
+                     <p className="flex items-center gap-1">
+                        <Sparkles className="h-3 w-3 text-primary" />
+                        <span>
+                           Superchain transactions confirm in seconds vs minutes
+                           on traditional bridges.
+                        </span>
+                     </p>
+                  </div>
+
+                  {/* Transaction Hash (if available) */}
+                  {txHash && (
+                     <div className="pt-2 border-t border-primary/10">
+                        <p className="text-xs font-mono break-all text-muted-foreground">
+                           Transaction: {txHash}
+                        </p>
+                     </div>
+                  )}
+               </div>
+            </DialogContent>
+         </Dialog>
+
+         {/* Add this style tag somewhere in your component */}
+         <style jsx global>{`
+            .route-animation-container {
+               position: relative;
+               overflow: hidden;
+            }
+
+            .moving-token {
+               animation: moveAcrossChains 3s infinite;
+            }
+
+            @keyframes moveAcrossChains {
+               0% {
+                  left: 6px;
+                  transform: scale(0.8);
+               }
+               50% {
+                  transform: scale(1.2);
+               }
+               100% {
+                  left: calc(100% - 30px);
+                  transform: scale(0.8);
+               }
+            }
+         `}</style>
       </div>
    );
 }
