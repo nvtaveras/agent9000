@@ -543,8 +543,8 @@ export default function CryptoSwap() {
             {routes && (
               <>
                 {/* Superchain Route */}
-                <div className="flex flex-col gap-3 p-4 rounded-lg border border-primary/20 bg-primary/5">
-                  <div className="flex items-center justify-between">
+                <div className="superchain-route-container relative flex flex-col gap-3 p-4 rounded-lg bg-primary/5 animate-border overflow-hidden">
+                  <div className="flex items-center justify-between relative z-10">
                     <div className="flex items-center gap-2">
                       <div className="flex -space-x-1">
                         {routes.optimizedRoute.steps
@@ -888,6 +888,82 @@ export default function CryptoSwap() {
 
       {/* Updated animation styles */}
       <style jsx global>{`
+        /* Custom property for border animation */
+        @property --border-angle {
+          syntax: "<angle>";
+          inherits: false;
+          initial-value: 0turn;
+        }
+
+        /* Border animation using border-image technique */
+        .superchain-route-container {
+          position: relative;
+          padding: 16px;
+          background: rgba(0, 10, 20, 0.9);
+          border: 2px solid transparent;
+          border-radius: 8px;
+          border-image: conic-gradient(
+              from var(--border-angle),
+              rgba(0, 255, 146, 0.1) 0%,
+              rgba(0, 255, 146, 0.1) 10%,
+              rgba(0, 255, 146, 0.8) 20%,
+              rgba(0, 255, 146, 0.1) 30%,
+              rgba(0, 255, 146, 0.1) 100%
+            )
+            1;
+        }
+
+        @keyframes border-rotate {
+          from {
+            --border-angle: 0turn;
+          }
+          to {
+            --border-angle: 1turn;
+          }
+        }
+
+        .animate-border {
+          animation: border-rotate 6s linear infinite;
+        }
+
+        /* Glow effect to enhance the border only */
+        .superchain-route-container::before {
+          content: "";
+          position: absolute;
+          top: -1px;
+          left: -1px;
+          right: -1px;
+          bottom: -1px;
+          border-radius: 9px;
+          background: transparent;
+          z-index: -1;
+          pointer-events: none;
+          box-shadow: 0 0 8px 1px rgba(0, 255, 146, 0.3);
+          opacity: 0;
+          animation: glow-pulse 6s linear infinite;
+          /* Make sure the glow only affects the border */
+          mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+          mask-composite: exclude;
+          -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor;
+        }
+
+        @keyframes glow-pulse {
+          0%,
+          100% {
+            opacity: 0;
+          }
+          25% {
+            opacity: 0.5;
+          }
+          50% {
+            opacity: 0.2;
+          }
+          75% {
+            opacity: 0.7;
+          }
+        }
+
         .route-animation-container {
           position: relative;
           overflow: hidden;
