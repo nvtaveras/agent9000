@@ -25,33 +25,29 @@ import { abi as superswapperAbi } from "@/app/providers/ABIs/superswapper";
 import { parseUnits, formatUnits } from "viem";
 
 export default function CryptoSwap() {
-   const [activeView, setActiveView] = useState<"home" | "boomer" | "zoomer">(
-      "home"
-   );
-   const [sellAmount, setSellAmount] = useState("0");
-   const [buyAmount, setBuyAmount] = useState("0");
-   const [sellCurrency, setSellCurrency] = useState("ST9000");
-   const [buyCurrency, setBuyCurrency] = useState("ETH");
-   const [activeTab, setActiveTab] = useState("Swap");
-   const [showRouteModal, setShowRouteModal] = useState(false);
-   const [routes, setRoutes] = useState<SwapRoutes | null>(null);
-   const [isCalculating, setIsCalculating] = useState(false);
-   const [isSwapping, setIsSwapping] = useState(false);
-   const [txHash, setTxHash] = useState<string | null>(null);
-   const { isConnected } = useAccount();
-   const { data: walletClient } = useWalletClient();
-   const publicClient = usePublicClient();
-   const [sellTokenBalance, setSellTokenBalance] = useState<string>("0");
-   const [buyTokenBalance, setBuyTokenBalance] = useState<string>("0");
-   const [insufficientBalance, setInsufficientBalance] = useState(false);
-   const [isRefreshingBalances, setIsRefreshingBalances] = useState(false);
-   const [showTxModal, setShowTxModal] = useState(false);
-   const [txTimer, setTxTimer] = useState(0);
-   const [txInterval, setTxInterval] = useState<NodeJS.Timeout | null>(null);
-   const [txStatus, setTxStatus] = useState<"pending" | "success" | "error">(
-      "pending"
-   );
-   const [txTimeElapsed, setTxTimeElapsed] = useState<number>(0);
+  const [activeView, setActiveView] = useState<"home" | "boomer" | "zoomer">("home");
+  const [sellAmount, setSellAmount] = useState("0");
+  const [buyAmount, setBuyAmount] = useState("0");
+  const [sellCurrency, setSellCurrency] = useState("ST9000");
+  const [buyCurrency, setBuyCurrency] = useState("ETH");
+  const [activeTab, setActiveTab] = useState("Swap");
+  const [showRouteModal, setShowRouteModal] = useState(false);
+  const [routes, setRoutes] = useState<SwapRoutes | null>(null);
+  const [isCalculating, setIsCalculating] = useState(false);
+  const [isSwapping, setIsSwapping] = useState(false);
+  const [txHash, setTxHash] = useState<string | null>(null);
+  const { isConnected } = useAccount();
+  const { data: walletClient } = useWalletClient();
+  const publicClient = usePublicClient();
+  const [sellTokenBalance, setSellTokenBalance] = useState<string>("0");
+  const [buyTokenBalance, setBuyTokenBalance] = useState<string>("0");
+  const [insufficientBalance, setInsufficientBalance] = useState(false);
+  const [isRefreshingBalances, setIsRefreshingBalances] = useState(false);
+  const [showTxModal, setShowTxModal] = useState(false);
+  const [txTimer, setTxTimer] = useState(0);
+  const [txInterval, setTxInterval] = useState<NodeJS.Timeout | null>(null);
+  const [txStatus, setTxStatus] = useState<"pending" | "success" | "error">("pending");
+  const [txTimeElapsed, setTxTimeElapsed] = useState<number>(0);
 
   const uniswap = useMemo(() => new UniswapService(), []);
 
@@ -108,10 +104,10 @@ export default function CryptoSwap() {
       return;
     }
 
-      setIsSwapping(true);
-      setShowTxModal(true);
-      setTxStatus("pending");
-      setTxTimer(0); // Reset timer at the start
+    setIsSwapping(true);
+    setShowTxModal(true);
+    setTxStatus("pending");
+    setTxTimer(0); // Reset timer at the start
 
     try {
       const SUPERSWAPPER_ADDRESS = "0x42d68F02E890fd91da05E24935e549bBeeCb4Dad";
@@ -165,34 +161,34 @@ export default function CryptoSwap() {
         });
       }
 
-         // Fetch updated balances after transaction confirmation
-         fetchTokenBalances();
+      // Fetch updated balances after transaction confirmation
+      fetchTokenBalances();
 
-         // Store the current timer value before clearing it
-         const finalTime = txTimer;
+      // Store the current timer value before clearing it
+      const finalTime = txTimer;
 
-         // Clear the timer
-         if (txInterval) {
-            clearInterval(txInterval);
-            setTxInterval(null);
-         }
-
-         // Set transaction as successful and store the final time
-         setTxStatus("success");
-         setTxTimeElapsed(finalTime);
-      } catch (error) {
-         console.error("Swap failed:", error);
-         setTxStatus("error");
-
-         // Clear the timer on error too
-         if (txInterval) {
-            clearInterval(txInterval);
-            setTxInterval(null);
-         }
-      } finally {
-         setIsSwapping(false);
+      // Clear the timer
+      if (txInterval) {
+        clearInterval(txInterval);
+        setTxInterval(null);
       }
-   };
+
+      // Set transaction as successful and store the final time
+      setTxStatus("success");
+      setTxTimeElapsed(finalTime);
+    } catch (error) {
+      console.error("Swap failed:", error);
+      setTxStatus("error");
+
+      // Clear the timer on error too
+      if (txInterval) {
+        clearInterval(txInterval);
+        setTxInterval(null);
+      }
+    } finally {
+      setIsSwapping(false);
+    }
+  };
 
   const shouldShowOptimizedRoute = (routes: SwapRoutes | null) => {
     if (!routes) return false;
@@ -607,108 +603,91 @@ export default function CryptoSwap() {
         </DialogContent>
       </Dialog>
 
-         {/* Transaction Progress Modal */}
-         <Dialog
-            open={showTxModal}
-            onOpenChange={(open) => {
-               if (!open && txInterval) {
-                  clearInterval(txInterval);
-                  setTxInterval(null);
-                  setTxTimer(0);
-               }
-               setShowTxModal(open);
-               // Reset status when closing the modal
-               if (!open) {
-                  setTxStatus("pending");
-               }
-            }}
-         >
-            <DialogContent className="sm:max-w-[400px] p-4">
-               <DialogHeader className="pb-2">
-                  <DialogTitle className="text-lg text-center font-mono">
-                     {txStatus === "pending"
-                        ? "Superchain Transfer in Progress"
-                        : txStatus === "success"
-                        ? "Superchain Transfer Complete"
-                        : "Superchain Transfer Failed"}
-                  </DialogTitle>
-               </DialogHeader>
+      {/* Transaction Progress Modal */}
+      <Dialog
+        open={showTxModal}
+        onOpenChange={(open) => {
+          if (!open && txInterval) {
+            clearInterval(txInterval);
+            setTxInterval(null);
+            setTxTimer(0);
+          }
+          setShowTxModal(open);
+          // Reset status when closing the modal
+          if (!open) {
+            setTxStatus("pending");
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-[400px] p-4">
+          <DialogHeader className="pb-2">
+            <DialogTitle className="text-lg text-center font-mono">
+              {txStatus === "pending"
+                ? "Superchain Transfer in Progress"
+                : txStatus === "success"
+                ? "Superchain Transfer Complete"
+                : "Superchain Transfer Failed"}
+            </DialogTitle>
+          </DialogHeader>
 
-               <div className="space-y-4">
-                  {/* Spinner and Timer */}
-                  <div className="flex flex-col items-center justify-center py-3">
-                     {txStatus === "pending" ? (
-                        <div className="h-12 w-12 animate-spin rounded-[50%] border-4 border-primary border-t-transparent mb-2" />
-                     ) : txStatus === "success" ? (
-                        <div className="h-12 w-12 rounded-full border-4 border-green-500 flex items-center justify-center mb-2 text-green-500">
-                           <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="h-8 w-8"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                           >
-                              <path
-                                 strokeLinecap="round"
-                                 strokeLinejoin="round"
-                                 strokeWidth={3}
-                                 d="M5 13l4 4L19 7"
-                              />
-                           </svg>
-                        </div>
-                     ) : (
-                        <div className="h-12 w-12 rounded-full border-4 border-red-500 flex items-center justify-center mb-2 text-red-500">
-                           <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="h-8 w-8"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                           >
-                              <path
-                                 strokeLinecap="round"
-                                 strokeLinejoin="round"
-                                 strokeWidth={3}
-                                 d="M6 18L18 6M6 6l12 12"
-                              />
-                           </svg>
-                        </div>
-                     )}
-                     <div className="text-lg font-mono">
-                        {txStatus === "pending" ? (
-                           <>
-                              {Math.floor(txTimer / 60)
-                                 .toString()
-                                 .padStart(2, "0")}
-                              :{(txTimer % 60).toString().padStart(2, "0")}
-                           </>
-                        ) : txStatus === "success" ? (
-                           <div className="flex items-center">
-                              <span>
-                                 Time taken: {Math.floor(txTimeElapsed / 60)}:
-                                 {(txTimeElapsed % 60)
-                                    .toString()
-                                    .padStart(2, "0")}
-                              </span>
-                              <span className="ml-2 text-xl">😮</span>
-                           </div>
-                        ) : (
-                           <span className="text-red-500">
-                              Transaction failed
-                           </span>
-                        )}
-                     </div>
+          <div className="space-y-4">
+            {/* Spinner and Timer */}
+            <div className="flex flex-col items-center justify-center py-3">
+              {txStatus === "pending" ? (
+                <div className="h-12 w-12 animate-spin rounded-[50%] border-4 border-primary border-t-transparent mb-2" />
+              ) : txStatus === "success" ? (
+                <div className="h-12 w-12 rounded-full border-4 border-green-500 flex items-center justify-center mb-2 text-green-500">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-8 w-8"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              ) : (
+                <div className="h-12 w-12 rounded-full border-4 border-red-500 flex items-center justify-center mb-2 text-red-500">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-8 w-8"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </div>
+              )}
+              <div className="text-lg font-mono">
+                {txStatus === "pending" ? (
+                  <>
+                    {Math.floor(txTimer / 60)
+                      .toString()
+                      .padStart(2, "0")}
+                    :{(txTimer % 60).toString().padStart(2, "0")}
+                  </>
+                ) : txStatus === "success" ? (
+                  <div className="flex items-center">
+                    <span>
+                      Time taken: {Math.floor(txTimeElapsed / 60)}:{(txTimeElapsed % 60).toString().padStart(2, "0")}
+                    </span>
+                    <span className="ml-2 text-xl">😮</span>
                   </div>
+                ) : (
+                  <span className="text-red-500">Transaction failed</span>
+                )}
+              </div>
+            </div>
 
-                  {/* Route Animation - Only show when pending */}
-                  {routes && txStatus === "pending" && (
-                     <div
-                        className="route-animation-container rounded-lg border border-primary/20 bg-primary/5 p-4 my-2"
-                        style={{ height: "240px" }}
-                     >
-                        <h3 className="text-xs text-muted-foreground mb-4 font-mono text-sm">
-                           Cross-Chain Routes
-                        </h3>
+            {/* Route Animation - Only show when pending */}
+            {routes && txStatus === "pending" && (
+              <div
+                className="route-animation-container rounded-lg border border-primary/20 bg-primary/5 p-4 my-2"
+                style={{ height: "240px" }}
+              >
+                <h3 className="text-xs text-muted-foreground mb-4 font-mono text-sm">Cross-Chain Routes</h3>
 
                 {/* Single animation row with one wallet on each side */}
                 <div className="relative h-full flex items-center">
@@ -831,60 +810,75 @@ export default function CryptoSwap() {
               </div>
             )}
 
-                  {/* Information Text */}
-                  <div className="text-xs text-muted-foreground">
-                     {txStatus === "pending" ? (
-                        <>
-                           <p className="mb-2">
-                              Your transaction is being processed across
-                              multiple chains simultaneously.
-                           </p>
-                           <p className="flex items-center gap-1">
-                              <span>
-                                 Superchain transactions confirm in seconds vs
-                                 minutes on traditional bridges.
-                              </span>
-                           </p>
-                        </>
-                     ) : txStatus === "success" ? (
-                        <p className="mb-2">
-                           Your transaction has been successfully processed
-                           across the Superchain. The tokens have been
-                           transferred to your wallet.
-                        </p>
-                     ) : (
-                        <p className="mb-2 text-red-500">
-                           There was an error processing your transaction.
-                           Please try again.
-                        </p>
-                     )}
-                  </div>
+            {/* Information Text */}
+            <div className="text-xs text-muted-foreground">
+              {txStatus === "pending" ? (
+                <>
+                  <p className="mb-2">Your transaction is being processed across multiple chains simultaneously.</p>
+                  <p className="flex items-center gap-1">
+                    <span>Superchain transactions confirm in seconds vs minutes on traditional bridges.</span>
+                  </p>
+                </>
+              ) : txStatus === "success" ? (
+                <p className="mb-2">
+                  Your transaction has been successfully processed across the Superchain. The tokens have been
+                  transferred to your wallet.
+                </p>
+              ) : (
+                <p className="mb-2 text-red-500">There was an error processing your transaction. Please try again.</p>
+              )}
+            </div>
 
-                  {/* Transaction Hash (if available) */}
-                  {txHash && (
-                     <div className="pt-2 border-t border-primary/10">
-                        <p className="text-xs font-mono break-all text-muted-foreground">
-                           Transaction: {txHash}
-                        </p>
-                     </div>
-                  )}
+            {/* Transaction Hash (if available) */}
+            {txHash && (
+              <div className="pt-2 border-t border-primary/10">
+                <p className="text-xs font-mono break-all text-muted-foreground">Transaction: {txHash}</p>
+              </div>
+            )}
 
-                  {/* Add a close button for success/error states */}
-                  {txStatus !== "pending" && (
-                     <Button
-                        onClick={() => {
-                           setShowTxModal(false);
-                           setTxTimer(0);
-                           setTxStatus("pending");
-                        }}
-                        className="w-full mt-2"
-                     >
-                        Close
-                     </Button>
-                  )}
-               </div>
-            </DialogContent>
-         </Dialog>
+            {/* Add a close button for success/error states */}
+            {txStatus !== "pending" && (
+              <Button
+                onClick={() => {
+                  setShowTxModal(false);
+                  setTxTimer(0);
+                  setTxStatus("pending");
+                }}
+                className="w-full mt-2"
+              >
+                Close
+              </Button>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Matrix Background Animation */}
+      <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
+        {Array.from({ length: 20 }).map((_, columnIndex) => (
+          <div
+            key={columnIndex}
+            className="absolute top-0 h-full"
+            style={{
+              left: `${columnIndex * 5 + Math.random() * 5}%`,
+              width: "2px",
+            }}
+          >
+            {Array.from({ length: 10 }).map((_, i) => (
+              <div
+                key={i}
+                className="absolute text-primary/10 font-mono text-xs animate-matrix-drop"
+                style={{
+                  animationDelay: `${Math.random() * 15}s`,
+                  animationDuration: `${8 + Math.random() * 15}s`,
+                }}
+              >
+                {Math.random() > 0.5 ? "0" : "1"}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
 
       {/* Updated animation styles */}
       <style jsx global>{`
@@ -967,6 +961,40 @@ export default function CryptoSwap() {
         .route-animation-container {
           position: relative;
           overflow: hidden;
+        }
+
+        @keyframes matrixFade {
+          0%,
+          100% {
+            opacity: 0;
+            transform: translateY(0);
+          }
+          50% {
+            opacity: 0.7;
+          }
+        }
+
+        .animate-matrix-fade {
+          animation: matrixFade var(--duration, 8s) var(--delay, 0s) infinite;
+        }
+
+        @keyframes matrixDrop {
+          0% {
+            opacity: 0;
+            transform: translateY(-20px);
+          }
+          10%,
+          90% {
+            opacity: 0.15;
+          }
+          100% {
+            opacity: 0;
+            transform: translateY(100vh);
+          }
+        }
+
+        .animate-matrix-drop {
+          animation: matrixDrop var(--duration, 12s) var(--delay, 0s) infinite;
         }
 
         ${routes?.optimizedRoute.steps
