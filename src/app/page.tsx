@@ -292,7 +292,25 @@ export default function CryptoSwap() {
               A9K
             </h1>
 
-            <h2 className="text-4xl md:text-5xl font-mono text-white mb-6">Superpowered AI agent for the superchain</h2>
+            <h2 className="text-4xl md:text-5xl font-mono text-white mb-6">
+              Superpowered AI agent for the{" "}
+              <span className="relative inline-block">
+                {/* Stars before the text */}
+                <span className="absolute -left-4 top-0 text-xs animate-star-twinkle delay-100">✦</span>
+                <span className="absolute -left-2 bottom-0 text-xs animate-star-twinkle delay-300">✧</span>
+                <span className="absolute -left-6 top-1/2 text-xs animate-star-twinkle delay-500">⋆</span>
+
+                {/* The word with gold effect */}
+                <span className="animate-gold-shimmer bg-gradient-to-r from-[#FFD700] via-[#FFF8DC] to-[#FFD700] text-transparent bg-clip-text">
+                  superchain
+                </span>
+
+                {/* Stars after the text */}
+                <span className="absolute -right-4 top-0 text-xs animate-star-twinkle delay-200">✦</span>
+                <span className="absolute -right-2 bottom-0 text-xs animate-star-twinkle delay-400">✧</span>
+                <span className="absolute -right-6 top-1/2 text-xs animate-star-twinkle delay-600">⋆</span>
+              </span>
+            </h2>
 
             <p className="text-xl md:text-2xl text-white/80 max-w-2xl mx-auto mb-8">
               Optimize cross-chain swaps. Maximize yields. Stay ahead in DeFi.
@@ -300,8 +318,8 @@ export default function CryptoSwap() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
               <div className="p-6 border border-primary/30 bg-background/60 backdrop-blur-sm">
-                <h3 className="text-2xl font-mono text-primary mb-3">Cross-Chain Swaps</h3>
-                <p className="text-white/70">Intelligent routing across multiple chains for the best possible rates</p>
+                <h3 className="text-2xl font-mono text-primary mb-3">Instant x-chain swaps*</h3>
+                <p className="text-white/70">fine, maybe 2-3 seconds</p>
               </div>
 
               <div className="p-6 border border-primary/30 bg-background/60 backdrop-blur-sm">
@@ -1267,6 +1285,56 @@ export default function CryptoSwap() {
           to {
             stroke-dashoffset: -1000;
           }
+        }
+
+        @keyframes goldShimmer {
+          0% {
+            background-position: -200% center;
+          }
+          100% {
+            background-position: 200% center;
+          }
+        }
+
+        @keyframes starTwinkle {
+          0%,
+          100% {
+            opacity: 0.2;
+            transform: scale(0.8);
+          }
+          50% {
+            opacity: 1;
+            transform: scale(1.2);
+          }
+        }
+
+        .animate-gold-shimmer {
+          background-size: 200% auto;
+          animation: goldShimmer 3s linear infinite;
+        }
+
+        .animate-star-twinkle {
+          animation: starTwinkle 2s ease-in-out infinite;
+          color: #ffd700;
+        }
+
+        .delay-100 {
+          animation-delay: 0.1s;
+        }
+        .delay-200 {
+          animation-delay: 0.2s;
+        }
+        .delay-300 {
+          animation-delay: 0.3s;
+        }
+        .delay-400 {
+          animation-delay: 0.4s;
+        }
+        .delay-500 {
+          animation-delay: 0.5s;
+        }
+        .delay-600 {
+          animation-delay: 0.6s;
         }
       `}</style>
     </div>
