@@ -20,7 +20,6 @@ export interface SingleChainRoute {
   chainId: number;
   chainName: string;
   amountOut: string;
-  fee: string;
 }
 
 export interface OptimizedRouteStep {
@@ -34,7 +33,6 @@ export interface SwapRoutes {
   optimizedRoute: {
     steps: OptimizedRouteStep[];
     totalAmountOut: string;
-    fee: string;
   };
   singleChainRoutes: SingleChainRoute[];
 }
@@ -195,25 +193,38 @@ export class UniswapService {
           {
             chainId: 8453,
             chainName: "Base",
-            percentage: 40,
-            amountOut: "0.90",
+            percentage: 30,
+            amountOut: "0.80",
+          },
+          {
+            chainId: 130,
+            chainName: "Unichain",
+            percentage: 10,
+            amountOut: "0.1",
           },
         ],
         totalAmountOut: "2.25",
-        fee: "< 0.01",
       },
       singleChainRoutes: [
         {
           chainId: 8453,
           chainName: "Base",
           amountOut: "2.24",
-          fee: "$27",
         },
         {
           chainId: 10,
           chainName: "Optimism",
           amountOut: "2.23",
-          fee: "$32",
+        },
+        {
+          chainId: 130,
+          chainName: "Unichain",
+          amountOut: "2.22",
+        },
+        {
+          chainId: 34443,
+          chainName: "Mode",
+          amountOut: "2.21",
         },
       ],
     };
