@@ -579,7 +579,8 @@ export default function CryptoSwap() {
                 {/* Single-Chain Routes */}
                 <div className="text-sm text-muted-foreground font-mono pt-2">Single Chain Swaps:</div>
                 {routes.singleChainRoutes.map((route: SingleChainRoute) => {
-                  const routeHas100Percent = routes?.optimizedRoute.steps.find((step) => step.percentage === 100)?.chainId === route.chainId;
+                  const routeHas100Percent =
+                    routes?.optimizedRoute.steps.find((step) => step.percentage === 100)?.chainId === route.chainId;
 
                   const isHighlighted = routes && !shouldShowOptimizedRoute(routes) && routeHas100Percent;
 
@@ -893,6 +894,81 @@ export default function CryptoSwap() {
         </DialogContent>
       </Dialog>
 
+      {/* Hexagonal Chain Network Pattern with Random Placement */}
+      <div className="fixed inset-0 pointer-events-none z-[-2] overflow-hidden opacity-10">
+        <svg className="w-full h-full" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice">
+          <defs>
+            <pattern id="hexGrid" width="100" height="173.2" patternUnits="userSpaceOnUse">
+              <polygon
+                points="50,0 100,25 100,75 50,100 0,75 0,25"
+                fill="none"
+                stroke="rgba(0, 255, 146, 0.2)"
+                strokeWidth="1"
+              />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#hexGrid)" />
+
+          {/* Chain Icons at Random Positions */}
+          {Array.from({ length: 24 }).map((_, index) => {
+            // Create deterministic but scattered positions
+            const hashBase = index * 13;
+            const xPos = 50 + (hashBase % 9) * 100;
+            const yPos = 50 + Math.floor((hashBase % 81) / 9) * 100;
+
+            // Cycle through chains in a shuffled order
+            const chainIdIndex = (index * 17) % 4;
+            const chainIds = [10, 8453, 130, 34443];
+            const chainId = chainIds[chainIdIndex];
+
+            return (
+              <foreignObject
+                key={`node-${index}`}
+                x={xPos - 15}
+                y={yPos - 15}
+                width="30"
+                height="30"
+                className="chain-node"
+              >
+                <div className="w-full h-full flex items-center justify-center">
+                  <ChainIcon chainId={chainId} className="w-6 h-6" />
+                </div>
+              </foreignObject>
+            );
+          })}
+
+          {/* Connecting Lines Between Nearby Nodes */}
+          {Array.from({ length: 30 }).map((_, index) => {
+            const startIdx = index % 24;
+            const endIdx = (startIdx + (index * 7 + 1)) % 24;
+
+            const hashBaseStart = startIdx * 13;
+            const hashBaseEnd = endIdx * 13;
+
+            const startX = 50 + (hashBaseStart % 9) * 100;
+            const startY = 50 + Math.floor((hashBaseStart % 81) / 9) * 100;
+            const endX = 50 + (hashBaseEnd % 9) * 100;
+            const endY = 50 + Math.floor((hashBaseEnd % 81) / 9) * 100;
+
+            // Calculate distance to avoid drawing very long lines
+            const distance = Math.sqrt(Math.pow(startX - endX, 2) + Math.pow(startY - endY, 2));
+            if (distance > 300) return null; // Skip if too far apart
+
+            const opacity = 0.1 - distance / 3000;
+
+            return (
+              <path
+                key={`connection-${index}`}
+                d={`M${startX},${startY} L${endX},${endY}`}
+                stroke={`rgba(0, 255, 146, ${opacity})`}
+                strokeWidth="1"
+                className="connection-line"
+              />
+            );
+          })}
+        </svg>
+      </div>
+
       {/* Matrix Background Animation */}
       <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
         {Array.from({ length: 20 }).map((_, columnIndex) => (
@@ -1167,6 +1243,31 @@ export default function CryptoSwap() {
             `;
           })
           .join("\n") || ""}
+
+        @keyframes pulse {
+          0%,
+          100% {
+            opacity: 0.1;
+          }
+          50% {
+            opacity: 0.3;
+          }
+        }
+
+        .chain-node {
+          animation: pulse 4s infinite;
+        }
+
+        .connection-line {
+          stroke-dasharray: 10, 5;
+          animation: dash 20s linear infinite;
+        }
+
+        @keyframes dash {
+          to {
+            stroke-dashoffset: -1000;
+          }
+        }
       `}</style>
     </div>
   );
