@@ -4,7 +4,7 @@ import { Network } from "@coinbase/agentkit";
 import { CreateAction } from "@coinbase/agentkit";
 import { parseUnits } from "viem";
 import { EvmWalletProvider } from "@coinbase/agentkit";
-import { uniswapSwapSchema } from "./schemas";
+import { uniswapSwapInfoSchema, uniswapSwapSchema } from "./schemas";
 import { UniswapService } from "./service";
 
 import { UniswapOptimizor } from "./optimizooor";
@@ -12,6 +12,40 @@ import { UniswapOptimizor } from "./optimizooor";
 export class UniswapV2ActionProvider extends ActionProvider<EvmWalletProvider> {
   constructor() {
     super("uniswapV2", []);
+  }
+
+  @CreateAction({
+    name: "swap_qupte",
+    description: `
+    Get the amount of tokens that will be received for a swap.
+
+    It takes the following inputs:
+    - tokenIn: The token to swap from
+    - tokenOut: The token to swap to
+    - amountIn: The amount of tokens to swap
+
+    IMPORTANT:
+    - When replying, mention the chains that will be used to swap the tokens.
+    `,
+    schema: uniswapSwapInfoSchema,
+  })
+  async swapQuote(walletProvider: EvmWalletProvider, args: z.infer<typeof uniswapSwapInfoSchema>): Promise<string> {
+    console.log("[Action]: uniswapV2Provider.swapQuote");
+
+    console.log("args", args);
+    const { tokenIn, tokenOut, amountIn } = args;
+    const uniswap = new UniswapService();
+    const routes = await uniswap.getSwapRoutes(tokenIn, tokenOut, amountIn);
+    const hops = routes.optimizedRoute.steps.filter((step) => parseFloat(step.amountOut) > 0);
+    const fullRoute = hops.map((hop) => hop.chainName).join("-> ");
+
+    console.log("hops", hops);
+    console.log("fullRoute", fullRoute);
+
+    return `
+    The amount of tokens that will be received for a swap is ${routes.optimizedRoute.totalAmountOut}.
+    The amount will be split across the following chains: ${fullRoute}.
+    `;
   }
 
   /**
