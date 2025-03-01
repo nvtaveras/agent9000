@@ -125,7 +125,7 @@ export function ChatInterface() {
                           message.sender === "user" ? "text-primary/70" : "text-muted-foreground"
                         }`}
                       >
-                        {/* {message.timestamp} */}
+                        {message.timestamp}
                       </p>
                     </div>
                   </div>
@@ -144,7 +144,7 @@ export function ChatInterface() {
                       />
                     </div>
                     <div className="flex items-center">
-                      <span>Thinking</span>
+                      {/* <span>Thinking</span> */}
                       <span className="inline-flex ml-[2px]">
                         <span className="dot">.</span>
                         <span className="dot">.</span>
