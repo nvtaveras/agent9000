@@ -1,6 +1,6 @@
 "use client";
 
-import { useState} from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,9 +18,26 @@ export default function CryptoSwap() {
    const [activeView, setActiveView] = useState<"boomer" | "zoomer">("boomer");
    const [sellAmount, setSellAmount] = useState("6000");
    const [buyAmount, setBuyAmount] = useState("2.25");
-   const [sellCurrency, setSellCurrency] = useState("USDC");
-   const [buyCurrency, setBuyCurrency] = useState("ETH");
+   const [sellCurrency, setSellCurrency] = useState("T9K");
+   const [buyCurrency, setBuyCurrency] = useState("WETH");
    const [activeTab, setActiveTab] = useState("Swap");
+
+   // Helper function to get the opposite token
+   const getOppositeToken = (current: string) => {
+      return current === "T9K" ? "WETH" : "T9K";
+   };
+
+   // Update buy currency whenever sell currency changes
+   const handleSellCurrencyChange = (newCurrency: string) => {
+      setSellCurrency(newCurrency);
+      setBuyCurrency(getOppositeToken(newCurrency));
+   };
+
+   // Update sell currency whenever buy currency changes
+   const handleBuyCurrencyChange = (newCurrency: string) => {
+      setBuyCurrency(newCurrency);
+      setSellCurrency(getOppositeToken(newCurrency));
+   };
 
    return (
       <div className="flex flex-col min-h-screen matrix-bg">
@@ -60,7 +77,7 @@ export default function CryptoSwap() {
                         {/* Sell Section */}
                         <div className="rounded-none border border-border/50">
                            <div className="p-4 pb-2">
-                              <div className="text-lg text-muted-foreground font-mono mb-2">
+                              <div className="text-sm text-muted-foreground font-mono mb-2">
                                  Sell
                               </div>
                               <div className="flex items-center">
@@ -70,7 +87,7 @@ export default function CryptoSwap() {
                                     onChange={(e) =>
                                        setSellAmount(e.target.value)
                                     }
-                                    className="border-0 text-4xl p-0 h-auto focus-visible:ring-0"
+                                    className="border-0 text-5xl md:text-4xl font-normal p-0 h-auto focus-visible:ring-0"
                                  />
                                  <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
@@ -90,32 +107,29 @@ export default function CryptoSwap() {
                                     <DropdownMenuContent>
                                        <DropdownMenuItem
                                           onClick={() =>
-                                             setSellCurrency("USDC")
+                                             handleSellCurrencyChange("T9K")
                                           }
                                        >
-                                          USDC
+                                          Token9000 (T9K)
                                        </DropdownMenuItem>
                                        <DropdownMenuItem
                                           onClick={() =>
-                                             setSellCurrency("USDT")
+                                             handleSellCurrencyChange("WETH")
                                           }
                                        >
-                                          USDT
-                                       </DropdownMenuItem>
-                                       <DropdownMenuItem
-                                          onClick={() => setSellCurrency("DAI")}
-                                       >
-                                          DAI
+                                          Super WETH
                                        </DropdownMenuItem>
                                     </DropdownMenuContent>
                                  </DropdownMenu>
                               </div>
-                              <div className="text-muted-foreground mt-1">
+
+                              {/* TODO: Add the price of the token */}
+                              {/* <div className="text-sm text-muted-foreground mt-1">
                                  $
                                  {Number.parseFloat(
                                     sellAmount
                                  ).toLocaleString()}
-                              </div>
+                              </div> */}
                            </div>
 
                            <div className="flex items-center justify-center border-t border-b border-border/50 py-2">
@@ -125,7 +139,7 @@ export default function CryptoSwap() {
                            </div>
 
                            <div className="p-4 pt-2">
-                              <div className="text-lg text-muted-foreground font-mono mb-2">
+                              <div className="text-sm text-muted-foreground font-mono mb-2">
                                  Buy
                               </div>
                               <div className="flex items-center">
@@ -135,7 +149,7 @@ export default function CryptoSwap() {
                                     onChange={(e) =>
                                        setBuyAmount(e.target.value)
                                     }
-                                    className="border-0 text-4xl p-0 h-auto focus-visible:ring-0"
+                                    className="border-0 text-5xl md:text-4xl font-normal p-0 h-auto focus-visible:ring-0"
                                  />
                                  <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
@@ -172,26 +186,27 @@ export default function CryptoSwap() {
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent>
                                        <DropdownMenuItem
-                                          onClick={() => setBuyCurrency("ETH")}
+                                          onClick={() =>
+                                             handleBuyCurrencyChange("WETH")
+                                          }
                                        >
-                                          ETH
+                                          Super WETH
                                        </DropdownMenuItem>
                                        <DropdownMenuItem
-                                          onClick={() => setBuyCurrency("BTC")}
+                                          onClick={() =>
+                                             handleBuyCurrencyChange("T9K")
+                                          }
                                        >
-                                          BTC
-                                       </DropdownMenuItem>
-                                       <DropdownMenuItem
-                                          onClick={() => setBuyCurrency("SOL")}
-                                       >
-                                          SOL
+                                          Token9000 (T9K)
                                        </DropdownMenuItem>
                                     </DropdownMenuContent>
                                  </DropdownMenu>
                               </div>
-                              <div className="text-muted-foreground mt-1">
+
+                              {/* TODO: Add the price of the token */}
+                              {/* <div className="text-sm text-muted-foreground mt-1">
                                  $5,999.99
-                              </div>
+                              </div> */}
                            </div>
                         </div>
 
