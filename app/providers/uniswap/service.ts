@@ -1,9 +1,10 @@
-import { Hex, PublicClient } from "viem";
+import { encodeFunctionData, Hex, PublicClient } from "viem";
 import { getViemClients } from "../viem/chains";
-import { Pair } from "@uniswap/v2-sdk";
-import { Token } from "@uniswap/sdk-core";
 import { abi as uniswapAbi } from "../ABIs/uniswap";
 import { abi as uniswapFactoryAbi } from "../ABIs/uniswapFactory";
+import { abi as erc20abi } from "../ABIs/erc20";
+import { abi as superswapperAbi } from "../ABIs/superswapper";
+import { EvmWalletProvider } from "@coinbase/agentkit";
 
 export interface UniswapPairInfo {
   chainId: number;
@@ -15,6 +16,7 @@ export interface UniswapPairInfo {
 }
 
 export class UniswapService {
+  private static readonly SUPERSWAPPER_ADDRESS = "0x7B42F440353999e506f44CC955d12b3b8Dc7544B";
   private static readonly knownTokensPerChain: Record<number, Record<string, string>> = {
     8453: {
       // Base
@@ -66,26 +68,48 @@ export class UniswapService {
     });
   }
 
+  public async approveSuperSwapper(
+    walletProvider: EvmWalletProvider,
+    tokenIn: string,
+    amount: bigint,
+  ): Promise<string> {
+    const approveHash = await walletProvider.sendTransaction({
+      to: tokenIn as Hex,
+      data: encodeFunctionData({
+        abi: erc20abi,
+        functionName: "approve",
+        args: [UniswapService.SUPERSWAPPER_ADDRESS as Hex, amount],
+      }),
+    });
+
+    return approveHash;
+  }
+
+  public async initiateSwap(
+    walletProvider: EvmWalletProvider,
+    tokenIn: string,
+    amounts: bigint[],
+    chains: bigint[],
+  ): Promise<string> {
+    return await walletProvider.sendTransaction({
+      to: UniswapService.SUPERSWAPPER_ADDRESS as Hex,
+      data: encodeFunctionData({
+        abi: superswapperAbi,
+        functionName: "initiateSwap",
+        args: [tokenIn as Hex, amounts, chains],
+      }),
+    });
+  }
+
   public async fetchPairsOnAllChains(tokenIn: string, tokenOut: string): Promise<UniswapPairInfo[]> {
     const pairs = [];
     for (const client of this.clients) {
       const chainId = client.chain!.id;
 
-      // const tokenInAddress =tokenIn;
       const tokenInAddress = UniswapService.knownTokensPerChain[chainId][tokenIn];
-      // const tokenOutAddress = tokenOut;
       const tokenOutAddress = UniswapService.knownTokensPerChain[chainId][tokenOut];
 
-      console.log("tokenInAddress", tokenInAddress);
-      console.log("tokenOutAddress", tokenOutAddress);
-
-      const uniTokenIn = new Token(chainId, tokenInAddress, UniswapService.decimalsPerToken[tokenInAddress]);
-      const uniTokenOut = new Token(chainId, tokenOutAddress, UniswapService.decimalsPerToken[tokenOutAddress]);
-
-      // const pairAddress = Pair.getAddress(uniTokenIn, uniTokenOut);
       const pairAddress = await this.getPairAddress(client, tokenInAddress, tokenOutAddress);
-      console.log("pair for chain id", chainId, "=>", pairAddress);
-      // console.log("Pair address", pairAddress);
 
       const token0 = await client.readContract({
         address: pairAddress as Hex,
