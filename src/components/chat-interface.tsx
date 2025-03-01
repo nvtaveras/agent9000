@@ -161,7 +161,7 @@ export function ChatInterface() {
             <form onSubmit={handleSendMessage} className="max-w-2xl mx-auto relative">
               <Input
                 type="text"
-                placeholder="$ send message"
+                placeholder=""
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 className="w-full h-12 pl-6 pr-16 text-lg font-mono bg-muted/50 border-primary/20 focus:border-primary/50"

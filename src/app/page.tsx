@@ -359,7 +359,7 @@ export default function CryptoSwap() {
               </div>
 
               <div className="p-6 border border-primary/30 bg-background/60 backdrop-blur-sm">
-                <h3 className="text-2xl font-mono text-primary mb-3">Normies welcome</h3>
+                <h3 className="text-2xl font-mono text-primary mb-3">Mainstream friendly</h3>
                 <p className="text-white/70">Intent-based interface powered by Coinbase's AgentKit</p>
               </div>
             </div>
@@ -407,9 +407,9 @@ export default function CryptoSwap() {
                     <div className="rounded-none border border-border/50">
                       <div className="p-4 pb-2">
                         <div className="text-sm text-muted-foreground font-mono mb-2 flex justify-between">
-                          <span>Sell</span>
+                          <span className="text-base">Sell</span>
                           {isConnected && (
-                            <span>
+                            <span className="text-base">
                               Balance: {parseFloat(sellTokenBalance).toFixed(6)} {sellCurrency}
                             </span>
                           )}
@@ -466,11 +466,11 @@ export default function CryptoSwap() {
                       </div>
 
                       <div className="p-4 pt-2">
-                        <div className="text-sm text-muted-foreground font-mono mb-2">Buy</div>
+                        {/* <div className="text-sm text-muted-foreground font-mono mb-2">Buy</div> */}
                         <div className="text-sm text-muted-foreground font-mono mb-2 flex justify-between">
-                          <span>Buy</span>
+                          <span className="text-base">Buy</span>
                           {isConnected && (
-                            <span>
+                            <span className="text-base">
                               Balance: {parseFloat(buyTokenBalance).toFixed(6)} {buyCurrency}
                             </span>
                           )}
@@ -612,7 +612,7 @@ export default function CryptoSwap() {
       <Dialog open={showRouteModal} onOpenChange={setShowRouteModal}>
         <DialogContent className="sm:max-w-[400px] p-4">
           <DialogHeader className="pb-2">
-            <DialogTitle className="text-sm">Available Routes</DialogTitle>
+            <DialogTitle className="text-lg font-mono">Available Routes</DialogTitle>
           </DialogHeader>
           <div className="space-y-2">
             {routes && (
@@ -627,54 +627,52 @@ export default function CryptoSwap() {
                             .filter((step) => step.percentage > 0)
                             .sort((a, b) => b.percentage - a.percentage)
                             .map((step) => (
-                              <ChainIcon key={step.chainId} chainId={step.chainId} className="h-7 w-7 border" />
+                              <ChainIcon key={step.chainId} chainId={step.chainId} className="h-8 w-8 border" />
                             ))}
                         </div>
-                        <span className="text-base font-mono">Superchain Optimized</span>
-                        <Sparkles className="h-5 w-5 text-primary" />
+                        <span className="text-xl font-mono">Superchain Optimized</span>
+                        <Sparkles className="h-6 w-6 text-primary" />
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 text-base">
+                    <div className="grid grid-cols-2 gap-2 text-lg">
                       {routes.optimizedRoute.steps
                         .filter((step) => step.percentage > 0)
                         .sort((a, b) => b.percentage - a.percentage)
                         .map((step) => (
                           <div key={step.chainId} className="flex items-center gap-2">
-                            <ChainIcon chainId={step.chainId} className="h-5 w-5" />
+                            <ChainIcon chainId={step.chainId} className="h-6 w-6" />
                             <span className="font-mono">{step.percentage}%</span>
                           </div>
                         ))}
                     </div>
 
-                    <div className="text-sm font-mono text-primary pt-1">
+                    <div className="text-lg font-mono text-primary pt-1">
                       Output: {routes.optimizedRoute.totalAmountOut} {buyCurrency}
                     </div>
                   </div>
                 )}
 
                 {/* Single-Chain Routes */}
-                <div className="text-sm text-muted-foreground font-mono pt-2">Single Chain Swaps:</div>
+                <div className="text-lg text-muted-foreground font-mono pt-2">Single Chain Swaps:</div>
                 {routes.singleChainRoutes.map((route: SingleChainRoute) => {
                   const routeHas100Percent =
                     routes?.optimizedRoute.steps.find((step) => step.percentage === 100)?.chainId === route.chainId;
 
                   const isHighlighted = routes && !shouldShowOptimizedRoute(routes) && routeHas100Percent;
 
-                  console.log(`highlighted: ${isHighlighted}`);
-
                   return (
                     <div
                       key={route.chainId}
-                      className={`flex items-center justify-between p-3 border rounded-sm text-sm ${
+                      className={`flex items-center justify-between p-3 border rounded-sm text-base ${
                         isHighlighted ? "border-primary/20 bg-primary/5" : "opacity-50 border-muted/20"
                       }`}
                     >
                       <div className="flex items-center gap-2">
-                        <ChainIcon chainId={route.chainId} className="h-5 w-5" />
-                        <span>{route.chainName}</span>
+                        <ChainIcon chainId={route.chainId} className="h-6 w-6" />
+                        <span className="text-lg">{route.chainName}</span>
                       </div>
-                      <span className="font-mono">
+                      <span className="font-mono text-lg">
                         {route.amountOut} {buyCurrency}
                       </span>
                     </div>
@@ -704,7 +702,7 @@ export default function CryptoSwap() {
       >
         <DialogContent className="sm:max-w-[400px] p-4">
           <DialogHeader className="pb-2">
-            <DialogTitle className="text-lg text-center font-mono">
+            <DialogTitle className="text-2xl text-center font-mono">
               {txStatus === "pending"
                 ? "Superchain Transfer in Progress"
                 : txStatus === "success"
@@ -717,12 +715,12 @@ export default function CryptoSwap() {
             {/* Spinner and Timer */}
             <div className="flex flex-col items-center justify-center py-3">
               {txStatus === "pending" ? (
-                <div className="h-12 w-12 animate-spin rounded-[50%] border-4 border-primary border-t-transparent mb-2" />
+                <div className="h-16 w-16 animate-spin rounded-[50%] border-4 border-primary border-t-transparent mb-4" />
               ) : txStatus === "success" ? (
-                <div className="h-12 w-12 rounded-full border-4 border-green-500 flex items-center justify-center mb-2 text-green-500">
+                <div className="h-16 w-16 rounded-full border-4 border-green-500 flex items-center justify-center mb-4 text-green-500">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-8 w-8"
+                    className="h-10 w-10"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -731,10 +729,10 @@ export default function CryptoSwap() {
                   </svg>
                 </div>
               ) : (
-                <div className="h-12 w-12 rounded-full border-4 border-red-500 flex items-center justify-center mb-2 text-red-500">
+                <div className="h-16 w-16 rounded-full border-4 border-red-500 flex items-center justify-center mb-4 text-red-500">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-8 w-8"
+                    className="h-10 w-10"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -743,7 +741,7 @@ export default function CryptoSwap() {
                   </svg>
                 </div>
               )}
-              <div className="text-lg font-mono">
+              <div className="text-2xl font-mono">
                 {txStatus === "pending" ? (
                   <>
                     {Math.floor(txTimer / 60)
@@ -756,7 +754,7 @@ export default function CryptoSwap() {
                     <span>
                       Time taken: {Math.floor(txTimeElapsed / 60)}:{(txTimeElapsed % 60).toString().padStart(2, "0")}
                     </span>
-                    <span className="ml-2 text-xl">😮</span>
+                    <span className="ml-2 text-2xl">😮</span>
                   </div>
                 ) : (
                   <span className="text-red-500">Transaction failed</span>
@@ -775,7 +773,7 @@ export default function CryptoSwap() {
                   )}px`,
                 }}
               >
-                <h3 className="text-xs text-muted-foreground mb-4 font-mono text-sm">Cross-Chain Routes</h3>
+                <h3 className="text-base text-muted-foreground mb-4 font-mono">Cross-Chain Routes</h3>
 
                 {/* Single animation row with one wallet on each side */}
                 <div className="relative h-full flex items-center">
@@ -920,7 +918,7 @@ export default function CryptoSwap() {
                 </div>
 
                 {/* Information below animations */}
-                <div className="text-xs text-muted-foreground mt-2 pt-2 border-t border-primary/10">
+                <div className="text-base text-muted-foreground mt-2 pt-2 border-t border-primary/10">
                   <span className="font-mono">
                     Expected output: {routes.optimizedRoute.totalAmountOut} {buyCurrency}
                   </span>
@@ -929,7 +927,7 @@ export default function CryptoSwap() {
             )}
 
             {/* Information Text */}
-            <div className="text-xs text-muted-foreground">
+            <div className="text-base text-muted-foreground">
               {txStatus === "pending" ? (
                 <>
                   <p className="mb-2">Your transaction is being processed across multiple chains simultaneously.</p>
@@ -950,7 +948,7 @@ export default function CryptoSwap() {
             {/* Transaction Hash (if available) */}
             {txHash && (
               <div className="pt-2 border-t border-primary/10">
-                <p className="text-xs font-mono break-all text-muted-foreground">Transaction: {txHash}</p>
+                <p className="text-sm font-mono break-all text-muted-foreground">Transaction: {txHash}</p>
               </div>
             )}
 
@@ -962,7 +960,7 @@ export default function CryptoSwap() {
                   setTxTimer(0);
                   setTxStatus("pending");
                 }}
-                className="w-full mt-2"
+                className="w-full mt-2 text-lg py-6"
               >
                 Close
               </Button>
