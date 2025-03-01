@@ -9,9 +9,13 @@ const chains = {
     id: 8453,
     rpcUrl: "http://localhost:9546",
   },
+  unichain: {
+    id: 130,
+    rpcUrl: "http://localhost:9547",
+  },
   mode: {
     id: 34443,
-    rpcUrl: "http://localhost:9547",
+    rpcUrl: "http://localhost:9548",
   },
 };
 

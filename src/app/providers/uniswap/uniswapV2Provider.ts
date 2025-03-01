@@ -2,16 +2,12 @@ import { z } from "zod";
 import { ActionProvider } from "@coinbase/agentkit";
 import { Network } from "@coinbase/agentkit";
 import { CreateAction } from "@coinbase/agentkit";
-import { encodeFunctionData, Hex, parseUnits } from "viem";
+import { parseUnits } from "viem";
 import { EvmWalletProvider } from "@coinbase/agentkit";
 import { uniswapSwapSchema } from "./schemas";
 import { UniswapService } from "./service";
 
-import { abi as superswapperabi } from "../ABIs/superswapper";
-import { abi as erc20abi } from "../ABIs/erc20";
 import { UniswapOptimizor } from "./optimizooor";
-
-const SUPERSWAPPER_ADDRESS = "0x7B42F440353999e506f44CC955d12b3b8Dc7544B";
 
 export class UniswapV2ActionProvider extends ActionProvider<EvmWalletProvider> {
   constructor() {
@@ -42,23 +38,29 @@ export class UniswapV2ActionProvider extends ActionProvider<EvmWalletProvider> {
   })
   async swap(walletProvider: EvmWalletProvider, args: z.infer<typeof uniswapSwapSchema>) {
     const { tokenIn, tokenOut, amountIn } = args;
-    console.log("Swap args", args);
     if (parseInt(amountIn, 10) > 1e18) {
       throw new Error(`Amount in is too large, did agent9000 get it wrong? ${amountIn}`);
     }
 
     const amountInAdjusted = parseUnits(amountIn, 18).toString();
-    console.log("Adjusted amount in", amountInAdjusted);
+
+    console.log("=== Swap args ===");
+    console.log(`tokenIn: ${tokenIn} | tokenOut: ${tokenOut} | amountIn: ${amountIn} (wei: ${amountInAdjusted})`);
+    console.log();
 
     const uniswap = new UniswapService();
     const optimizooor = new UniswapOptimizor();
 
     const pairs = await uniswap.fetchPairsOnAllChains(tokenIn, tokenOut);
+
     console.log("=== Pairs from UniswapService ===");
     console.log(pairs);
+    console.log();
+
     const swaps = optimizooor.getSwapsToExecute(amountInAdjusted, pairs);
     console.log("=== Swaps from Optimizooor ===");
     console.log(swaps);
+    console.log();
 
     let chains = swaps.map((swap) => BigInt(swap.chainId));
     let amounts = swaps.map((swap) => BigInt(swap.amountIn));
@@ -67,29 +69,14 @@ export class UniswapV2ActionProvider extends ActionProvider<EvmWalletProvider> {
     const chainId = parseInt(walletProvider.getNetwork().chainId!, 10);
     const tokenInAddress = uniswap.getTokenAddress(chainId, tokenIn);
 
-    // Approve superswapper the amount of tokens
-    const approveHash = await walletProvider.sendTransaction({
-      to: tokenInAddress as Hex,
-      data: encodeFunctionData({
-        abi: erc20abi,
-        functionName: "approve",
-        args: [SUPERSWAPPER_ADDRESS as Hex, amountsSum],
-      }),
-    });
+    console.log(`Approving ${amountsSum} ${tokenIn} for SuperSwapper`);
+    const approveHash = await uniswap.approveSuperSwapper(walletProvider, tokenInAddress, amountsSum);
+    console.log(`Approve tx: ${approveHash}`);
 
-    console.log("Approve hash", approveHash);
+    const swapHash = await uniswap.initiateSwap(walletProvider, tokenInAddress, amounts, chains);
+    console.log(`Swap tx: ${swapHash}`);
 
-    const hash = await walletProvider.sendTransaction({
-      to: SUPERSWAPPER_ADDRESS as Hex,
-      data: encodeFunctionData({
-        abi: superswapperabi,
-        functionName: "initiateSwap",
-        args: [tokenInAddress as Hex, amounts, chains],
-      }),
-    });
-
-    console.log("Swap hash", hash);
-    return hash;
+    return swapHash;
   }
 
   supportsNetwork = (network: Network) => true;
