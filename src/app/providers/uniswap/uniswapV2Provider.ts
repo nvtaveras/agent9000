@@ -58,8 +58,13 @@ export class UniswapV2ActionProvider extends ActionProvider<EvmWalletProvider> {
     console.log();
 
     const swaps = optimizooor.getSwapsToExecute(amountInAdjusted, pairs);
+    const swapsFormatted = swaps.map((swap) => ({
+      chainId: swap.chainId,
+      amount: swap.amount.toString(),
+    }));
+
     console.log("=== Swaps from Optimizooor ===");
-    console.log(swaps);
+    console.log(swapsFormatted);
     console.log();
 
     let chains = swaps.map((swap) => BigInt(swap.chainId));

@@ -6,6 +6,7 @@ import { abi as erc20abi } from "../ABIs/erc20";
 import { abi as superswapperAbi } from "../ABIs/superswapper";
 import { EvmWalletProvider } from "@coinbase/agentkit";
 import { UniswapOptimizor } from "./optimizooor";
+import { CHAIN_NAMES } from "@/config/chain-icons";
 
 export interface UniswapPairInfo {
   chainId: number;
@@ -181,52 +182,47 @@ export class UniswapService {
 
   public async getSwapRoutes(tokenIn: string, tokenOut: string, amountIn: string): Promise<SwapRoutes> {
     // This is a dummy implementation that will be replaced with real logic
+    const amountInWei = parseUnits(amountIn, 18).toString();
+
+    const pairs = await this.fetchPairsOnAllChains(tokenIn, tokenOut);
+    const optimizooor = new UniswapOptimizor();
+    const swaps = optimizooor.getSwapsToExecute(amountInWei, pairs);
+
+    let { splitAmountOuts, totalAmountOut } = optimizooor.calculateSplitAmountOuts(pairs, swaps);
+    let singleChainRoutes = optimizooor.calculateSingleExchangeAmountOuts(pairs, swaps);
+
+    totalAmountOut = formatUnits(BigInt(totalAmountOut), 18);
+    splitAmountOuts = splitAmountOuts.map((split) => ({
+      ...split,
+      amountOut: formatUnits(BigInt(split.amountOut), 18),
+    }));
+    singleChainRoutes = singleChainRoutes.map((route) => ({
+      ...route,
+      amountOut: formatUnits(BigInt(route.amountOut), 18),
+    }));
+
+    const optimizedRouteSteps = splitAmountOuts.map(
+      (split) =>
+        ({
+          chainId: split.chainId,
+          chainName: CHAIN_NAMES[split.chainId],
+          percentage: parseFloat(Number(100 * (parseFloat(split.amountOut) / parseFloat(totalAmountOut))).toFixed(2)),
+          amountOut: split.amountOut,
+        } as OptimizedRouteStep),
+    );
+
+    const singleChainSteps = singleChainRoutes.map((route) => ({
+      chainId: route.chainId,
+      chainName: CHAIN_NAMES[route.chainId],
+      amountOut: route.amountOut,
+    }));
+
     return {
       optimizedRoute: {
-        steps: [
-          {
-            chainId: 10,
-            chainName: "Optimism",
-            percentage: 60,
-            amountOut: "1.35",
-          },
-          {
-            chainId: 8453,
-            chainName: "Base",
-            percentage: 30,
-            amountOut: "0.80",
-          },
-          {
-            chainId: 130,
-            chainName: "Unichain",
-            percentage: 10,
-            amountOut: "0.1",
-          },
-        ],
-        totalAmountOut: "2.25",
+        steps: optimizedRouteSteps,
+        totalAmountOut: totalAmountOut,
       },
-      singleChainRoutes: [
-        {
-          chainId: 8453,
-          chainName: "Base",
-          amountOut: "2.24",
-        },
-        {
-          chainId: 10,
-          chainName: "Optimism",
-          amountOut: "2.23",
-        },
-        {
-          chainId: 130,
-          chainName: "Unichain",
-          amountOut: "2.22",
-        },
-        {
-          chainId: 34443,
-          chainName: "Mode",
-          amountOut: "2.21",
-        },
-      ],
+      singleChainRoutes: singleChainSteps,
     };
   }
 }

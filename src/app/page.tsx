@@ -21,8 +21,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function CryptoSwap() {
   const [activeView, setActiveView] = useState<"boomer" | "zoomer">("boomer");
-  const [sellAmount, setSellAmount] = useState("6000");
-  const [buyAmount, setBuyAmount] = useState("2.25");
+  const [sellAmount, setSellAmount] = useState("0");
+  const [buyAmount, setBuyAmount] = useState("0");
   const [sellCurrency, setSellCurrency] = useState("ST9000");
   const [buyCurrency, setBuyCurrency] = useState("ETH");
   const [activeTab, setActiveTab] = useState("Swap");
