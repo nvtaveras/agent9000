@@ -1,5 +1,6 @@
 "use client";
 
+import React, { Fragment } from "react";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -735,7 +736,6 @@ export default function CryptoSwap() {
                </div>
             </DialogContent>
          </Dialog>
- 
 
          {/* Transaction Progress Modal */}
          <Dialog
@@ -768,72 +768,145 @@ export default function CryptoSwap() {
                      </div>
                   </div>
 
-                  {/* Route Animation */}
+                  {/* Route Animation - Improved Layout */}
                   {routes && (
-                     <div className="route-animation-container rounded-lg border border-primary/20 bg-primary/5 p-4 my-2">
+                     <div
+                        className="route-animation-container rounded-lg border border-primary/20 bg-primary/5 p-4 my-2"
+                        style={{ height: "240px" }}
+                     >
                         <h3 className="text-primary font-mono mb-3 text-sm">
-                           Cross-Chain Route
+                           Cross-Chain Routes
                         </h3>
-                        <div className="relative h-16 flex items-center">
-                           {/* Start Token */}
-                           <div className="absolute left-2 z-20 token-icon">
-                              <div className="w-8 h-8 rounded-full border-2 border-primary/50 flex items-center justify-center bg-background">
-                                 <span className="text-primary text-sm font-mono">
-                                    {sellCurrency}
-                                 </span>
+
+                        {/* Single animation row with one wallet on each side */}
+                        <div className="relative h-full flex items-center">
+                           {/* Wallet Icon (Source) */}
+                           <div className="absolute left-2 top-1/2 -translate-y-1/2 z-20">
+                              <div className="w-10 h-10 rounded-full border-2 border-primary/50 flex items-center justify-center bg-background">
+                                 <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    className="h-5 w-5 text-primary"
+                                 >
+                                    <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
+                                    <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
+                                    <path d="M18 12a2 2 0 0 0 0 4h4v-4Z" />
+                                 </svg>
                               </div>
                            </div>
 
-                           {/* Moving Token Animation */}
-                           <div className="moving-token absolute z-30 left-2">
-                              <div className="h-4 w-4 rounded-full bg-primary/80 shadow-[0_0_8px_rgba(0,255,146,0.5)]"></div>
-                           </div>
-
-                           {/* Path Line */}
-                           <div className="absolute left-10 right-10 h-0.5 border-t-2 border-dashed border-primary/30"></div>
-
-                           {/* Chain Icons */}
-                           <div className="absolute right-2 flex items-center -space-x-2">
+                           {/* Center Chain Icons */}
+                           <div className="absolute left-1/2 transform -translate-x-1/2 flex flex-col items-center z-20 space-y-10">
                               {routes.optimizedRoute.steps
                                  .filter((step) => step.percentage > 0)
                                  .sort((a, b) => b.percentage - a.percentage)
                                  .map((step, index) => (
                                     <div
                                        key={step.chainId}
-                                       className="chain-icon z-10"
-                                       style={{ right: `${index * 10}px` }}
+                                       className="relative"
                                     >
+                                       {/* Percentage Label - Centered above */}
+                                       <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-primary/20 border border-primary/50 rounded-full px-1.5 py-0.5 text-xs font-mono">
+                                          {step.percentage}%
+                                       </div>
+
+                                       {/* Chain Icon */}
                                        <ChainIcon
                                           chainId={step.chainId}
-                                          className="h-8 w-8 border-2 border-primary/50 rounded-full p-0.5 bg-background"
+                                          className="h-8 w-8 border-2 border-primary/50 rounded-full p-0.5 bg-background overflow-hidden"
                                        />
                                     </div>
                                  ))}
                            </div>
-                        </div>
 
-                        {/* Chain splits - percentages */}
-                        <div className="grid grid-cols-2 gap-2 mt-3">
+                           {/* Wallet Icon (Destination) */}
+                           <div className="absolute right-2 top-1/2 -translate-y-1/2 z-20">
+                              <div className="w-10 h-10 rounded-full border-2 border-primary/50 flex items-center justify-center bg-background">
+                                 <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    className="h-5 w-5 text-primary"
+                                 >
+                                    <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
+                                    <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
+                                    <path d="M18 12a2 2 0 0 0 0 4h4v-4Z" />
+                                 </svg>
+                              </div>
+                           </div>
+
+                           {/* Path Lines with curved SVG paths */}
+                           <svg
+                              className="absolute w-full h-full top-0 left-0 z-10"
+                              viewBox="0 0 400 240"
+                              preserveAspectRatio="none"
+                           >
+                              {routes.optimizedRoute.steps
+                                 .filter((step) => step.percentage > 0)
+                                 .sort((a, b) => b.percentage - a.percentage)
+                                 .map((step, index, array) => {
+                                    const totalSteps = array.length;
+                                    const centerY = 120; // Middle of container
+                                    const spacing = 50; // Increased spacing between paths
+                                    const offset =
+                                       (index - (totalSteps - 1) / 2) * spacing;
+                                    const pathY = centerY + offset;
+
+                                    // For 3 chains, index 1 is the middle one
+                                    const isMiddleToken =
+                                       totalSteps === 3
+                                          ? index === 1
+                                          : Math.abs(offset) < 10;
+
+                                    return (
+                                       <Fragment key={`path-${step.chainId}`}>
+                                          {/* Path */}
+                                          <path
+                                             d={
+                                                isMiddleToken
+                                                   ? `M 15,120 L 385,120` // Straight line for middle token
+                                                   : `M 15,120 Q 100,${pathY} 200,${pathY} Q 300,${pathY} 385,120`
+                                             } // Curved for others
+                                             stroke="rgba(0, 255, 146, 0.3)"
+                                             strokeWidth="2"
+                                             fill="none"
+                                             strokeDasharray="5,5"
+                                          />
+                                       </Fragment>
+                                    );
+                                 })}
+                           </svg>
+
+                           {/* Moving Tokens */}
                            {routes.optimizedRoute.steps
                               .filter((step) => step.percentage > 0)
                               .sort((a, b) => b.percentage - a.percentage)
-                              .map((step) => (
+                              .map((step, index) => (
                                  <div
-                                    key={step.chainId}
-                                    className="flex items-center gap-2"
+                                    key={`token-${step.chainId}`}
+                                    className={`moving-token-${index} absolute z-30`}
                                  >
-                                    <ChainIcon
-                                       chainId={step.chainId}
-                                       className="h-4 w-4"
-                                    />
-                                    <span className="font-mono text-xs">
-                                       {step.chainName}:{" "}
-                                       <span className="text-primary">
-                                          {step.percentage}%
-                                       </span>
-                                    </span>
+                                    <div className="h-4 w-4 rounded-full bg-primary/80 shadow-[0_0_8px_rgba(0,255,146,0.5)]"></div>
                                  </div>
                               ))}
+                        </div>
+
+                        {/* Information below animations */}
+                        <div className="text-xs text-muted-foreground mt-2 pt-2 border-t border-primary/10">
+                           <span className="font-mono">
+                              Expected output:{" "}
+                              {routes.optimizedRoute.totalAmountOut}{" "}
+                              {buyCurrency}
+                           </span>
                         </div>
                      </div>
                   )}
@@ -845,7 +918,6 @@ export default function CryptoSwap() {
                         chains simultaneously.
                      </p>
                      <p className="flex items-center gap-1">
-                        <Sparkles className="h-3 w-3 text-primary" />
                         <span>
                            Superchain transactions confirm in seconds vs minutes
                            on traditional bridges.
@@ -865,30 +937,112 @@ export default function CryptoSwap() {
             </DialogContent>
          </Dialog>
 
-         {/* Add this style tag somewhere in your component */}
+         {/* Updated animation styles */}
          <style jsx global>{`
             .route-animation-container {
                position: relative;
                overflow: hidden;
             }
 
-            .moving-token {
-               animation: moveAcrossChains 3s infinite;
-            }
+            ${routes?.optimizedRoute.steps
+               .filter((step) => step.percentage > 0)
+               .sort((a, b) => b.percentage - a.percentage)
+               .map((step, index, array) => {
+                  const totalSteps = array.length;
+                  const centerY = 120;
+                  const spacing = 50;
+                  const offset = (index - (totalSteps - 1) / 2) * spacing;
+                  const pathY = centerY + offset;
 
-            @keyframes moveAcrossChains {
-               0% {
-                  left: 6px;
-                  transform: scale(0.8);
-               }
-               50% {
-                  transform: scale(1.2);
-               }
-               100% {
-                  left: calc(100% - 30px);
-                  transform: scale(0.8);
-               }
-            }
+                  // Check if this is the middle token (or closest to middle)
+                  const isMiddleToken =
+                     totalSteps === 3
+                        ? index === 1
+                        : Math.abs(offset) < spacing / 2;
+
+                  return `
+                     .moving-token-${index} {
+                        animation: moveAcrossChains-${index} 4s infinite;
+                        animation-delay: ${index * 0.8}s;
+                        position: absolute;
+                        transform: translate(-50%, -50%);
+                     }
+                     
+                     @keyframes moveAcrossChains-${index} {
+                        0%, 5% {
+                           left: 15px;
+                           top: 120px;
+                           transform: translate(-50%, -50%) scale(0.8);
+                           opacity: 0;
+                        }
+                        10% {
+                           opacity: 1;
+                           transform: translate(-50%, -50%) scale(1);
+                        }
+                        ${
+                           isMiddleToken
+                              ? `
+                        /* Straight line path animation for middle token */
+                        25% {
+                           left: 100px;
+                           top: 120px;
+                           transform: translate(-50%, -50%) scale(1);
+                        }
+                        /* Pass through the chain icon */
+                        50% {
+                           left: 200px;
+                           top: 120px;
+                           transform: translate(-50%, -50%) scale(1.2);
+                        }
+                        75% {
+                           left: 300px;
+                           top: 120px;
+                           transform: translate(-50%, -50%) scale(1);
+                        }
+                        `
+                              : `
+                        /* Curved path animation for outer tokens */
+                        15% {
+                           left: 50px;
+                           top: ${120 + (pathY - 120) * 0.2}px;
+                           transform: translate(-50%, -50%) scale(1);
+                        }
+                        30% {
+                           left: 100px;
+                           top: ${pathY}px;
+                           transform: translate(-50%, -50%) scale(1);
+                        }
+                        /* Pass through the chain icon */
+                        50% {
+                           left: 200px;
+                           top: ${pathY}px;
+                           transform: translate(-50%, -50%) scale(1.2);
+                        }
+                        70% {
+                           left: 300px;
+                           top: ${pathY}px;
+                           transform: translate(-50%, -50%) scale(1);
+                        }
+                        85% {
+                           left: 350px;
+                           top: ${120 + (pathY - 120) * 0.2}px;
+                           transform: translate(-50%, -50%) scale(1);
+                        }
+                        `
+                        }
+                        90% {
+                           opacity: 1;
+                        }
+                        95%, 100% {
+                           left: 385px;
+                           top: 120px;
+                           transform: translate(-50%, -50%) scale(0.8);
+                           opacity: 0;
+                        }
+                     }
+                  `;
+               })
+               .join("\n") || ""}
          `}</style>
       </div>
    );
