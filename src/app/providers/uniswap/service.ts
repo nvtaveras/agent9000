@@ -16,26 +16,26 @@ export interface UniswapPairInfo {
 }
 
 export interface SingleChainRoute {
-   chainId: number;
-   chainName: string;
-   amountOut: string;
-   fee: string;
+  chainId: number;
+  chainName: string;
+  amountOut: string;
+  fee: string;
 }
 
 export interface OptimizedRouteStep {
-   chainId: number;
-   chainName: string;
-   percentage: number;
-   amountOut: string;
+  chainId: number;
+  chainName: string;
+  percentage: number;
+  amountOut: string;
 }
 
 export interface SwapRoutes {
-   optimizedRoute: {
-      steps: OptimizedRouteStep[];
-      totalAmountOut: string;
-      fee: string;
-   };
-   singleChainRoutes: SingleChainRoute[];
+  optimizedRoute: {
+    steps: OptimizedRouteStep[];
+    totalAmountOut: string;
+    fee: string;
+  };
+  singleChainRoutes: SingleChainRoute[];
 }
 
 export class UniswapService {
@@ -173,61 +173,57 @@ export class UniswapService {
     // TODO: Implement actual price calculation using reserves
 
     // Wait for 10 seconds
-    await new Promise((resolve) => setTimeout(resolve, 5000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // For now, just return a dummy conversion:
-    // If swapping from T9K to WETH: divide by 1000
-    // If swapping from WETH to T9K: multiply by 1000
+    // If swapping from ST9000 to ETH: divide by 1000
+    // If swapping from ETH to ST9000: multiply by 1000
     const amountInBN = BigInt(amountIn);
 
-    if (tokenIn === "T9K" && tokenOut === "WETH") {
+    if (tokenIn === "ST9000" && tokenOut === "ETH") {
       return (amountInBN / BigInt(2)).toString();
-    } else if (tokenIn === "WETH" && tokenOut === "T9K") {
+    } else if (tokenIn === "ETH" && tokenOut === "ST9000") {
       return (amountInBN * BigInt(4)).toString();
     }
 
-      return amountIn; // Fallback 1:1 ratio
-   }
+    return amountIn; // Fallback 1:1 ratio
+  }
 
-   public async getSwapRoutes(
-      tokenIn: string,
-      tokenOut: string,
-      amountIn: string
-   ): Promise<SwapRoutes> {
-      // This is a dummy implementation that will be replaced with real logic
-      return {
-         optimizedRoute: {
-            steps: [
-               {
-                  chainId: 10,
-                  chainName: "Optimism",
-                  percentage: 60,
-                  amountOut: "1.35",
-               },
-               {
-                  chainId: 8453,
-                  chainName: "Base",
-                  percentage: 40,
-                  amountOut: "0.90",
-               },
-            ],
-            totalAmountOut: "2.25",
-            fee: "< 0.01",
-         },
-         singleChainRoutes: [
-            {
-               chainId: 8453,
-               chainName: "Base",
-               amountOut: "2.24",
-               fee: "$27",
-            },
-            {
-               chainId: 10,
-               chainName: "Optimism",
-               amountOut: "2.23",
-               fee: "$32",
-            },
-         ],
-      };
-   }
+  public async getSwapRoutes(tokenIn: string, tokenOut: string, amountIn: string): Promise<SwapRoutes> {
+    // This is a dummy implementation that will be replaced with real logic
+    return {
+      optimizedRoute: {
+        steps: [
+          {
+            chainId: 10,
+            chainName: "Optimism",
+            percentage: 60,
+            amountOut: "1.35",
+          },
+          {
+            chainId: 8453,
+            chainName: "Base",
+            percentage: 40,
+            amountOut: "0.90",
+          },
+        ],
+        totalAmountOut: "2.25",
+        fee: "< 0.01",
+      },
+      singleChainRoutes: [
+        {
+          chainId: 8453,
+          chainName: "Base",
+          amountOut: "2.24",
+          fee: "$27",
+        },
+        {
+          chainId: 10,
+          chainName: "Optimism",
+          amountOut: "2.23",
+          fee: "$32",
+        },
+      ],
+    };
+  }
 }
