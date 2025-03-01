@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import {
 import { ChevronDown, ArrowDown, Sparkles, Settings } from "lucide-react";
 import { Header } from "@/components/header";
 import { ChatInterface } from "@/components/chat-interface";
+import { UniswapService } from "@/app/providers/uniswap/service";
 
 export default function CryptoSwap() {
    const [activeView, setActiveView] = useState<"boomer" | "zoomer">("boomer");
@@ -21,6 +22,26 @@ export default function CryptoSwap() {
    const [sellCurrency, setSellCurrency] = useState("T9K");
    const [buyCurrency, setBuyCurrency] = useState("WETH");
    const [activeTab, setActiveTab] = useState("Swap");
+
+   const uniswap = useMemo(() => new UniswapService(), []);
+
+   const updateBuyAmount = useCallback(async () => {
+      try {
+         const amountOut = await uniswap.getAmountOut(
+            sellCurrency,
+            buyCurrency,
+            sellAmount
+         );
+         setBuyAmount(amountOut);
+      } catch (error) {
+         console.error("Error calculating amount out:", error);
+      }
+   }, [sellCurrency, buyCurrency, sellAmount, uniswap]);
+
+   // Update buy amount when inputs change
+   useEffect(() => {
+      updateBuyAmount();
+   }, [sellAmount, sellCurrency, buyCurrency, updateBuyAmount]);
 
    // Helper function to get the opposite token
    const getOppositeToken = (current: string) => {
@@ -37,6 +58,11 @@ export default function CryptoSwap() {
    const handleBuyCurrencyChange = (newCurrency: string) => {
       setBuyCurrency(newCurrency);
       setSellCurrency(getOppositeToken(newCurrency));
+   };
+
+   // Update the input handler
+   const handleSellAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setSellAmount(e.target.value);
    };
 
    return (
@@ -84,9 +110,7 @@ export default function CryptoSwap() {
                                  <Input
                                     type="text"
                                     value={sellAmount}
-                                    onChange={(e) =>
-                                       setSellAmount(e.target.value)
-                                    }
+                                    onChange={handleSellAmountChange}
                                     className="border-0 text-5xl md:text-4xl font-normal p-0 h-auto focus-visible:ring-0"
                                  />
                                  <DropdownMenu>
