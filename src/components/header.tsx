@@ -29,23 +29,23 @@ export function Header({
                <nav className="hidden md:flex items-center gap-6">
                   <button
                      onClick={() => setActiveView("boomer")}
-                     className={`text-base font-mono ${
+                     className={`text-lg font-mono cursor-pointer transition-colors duration-200 ease-in-out ${
                         activeView === "boomer"
-                           ? "text-secondary"
-                           : "text-foreground/70 hover:text-secondary/90"
+                           ? "text-[#00ff92]"
+                           : "text-foreground/90 hover:text-[#00ff92]/90"
                      }`}
                   >
-                     boomer
+                     Boomer
                   </button>
                   <button
                      onClick={() => setActiveView("zoomer")}
-                     className={`text-base font-mono ${
+                     className={`text-lg font-mono cursor-pointer transition-colors duration-200 ease-in-out ${
                         activeView === "zoomer"
-                           ? "text-secondary"
-                           : "text-foreground/70 hover:text-secondary/90"
+                           ? "text-[#00ff92]"
+                           : "text-foreground/90 hover:text-[#00ff92]/90"
                      }`}
                   >
-                     zoomer
+                     Zoomer
                   </button>
                </nav>
             </div>

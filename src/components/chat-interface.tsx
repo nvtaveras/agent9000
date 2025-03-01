@@ -7,13 +7,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Send } from "lucide-react";
 import { useAgent } from "@/app/hooks/useAgent";
-import ReactMarkdown from "react-markdown"; 
+import ReactMarkdown from "react-markdown";
+import Typed from "typed.js";
 
 export function ChatInterface() {
    const [inputValue, setInputValue] = useState("");
    const [isInitial, setIsInitial] = useState(true);
    const messagesEndRef = useRef<HTMLDivElement>(null);
    const { messages, sendMessage, isThinking } = useAgent();
+   const titleRef = useRef<HTMLHeadingElement>(null);
 
    const scrollToBottom = useCallback(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -23,22 +25,45 @@ export function ChatInterface() {
       scrollToBottom();
    }, [messages, scrollToBottom]);
 
+   useEffect(() => {
+      if (titleRef.current && isInitial) {
+         const typed = new Typed(titleRef.current, {
+            strings: ["How may I assist?"],
+            typeSpeed: 40,
+            cursorChar: "▋",
+            showCursor: false,
+            onComplete: () => {
+               if (titleRef.current) {
+                  titleRef.current.classList.add("terminal-text");
+               }
+            },
+         });
+
+         return () => {
+            typed.destroy();
+         };
+      }
+   }, [isInitial]);
+
    const handleSendMessage = async (e: React.FormEvent) => {
       e.preventDefault();
-      if (!inputValue.trim() || isThinking) return; 
- 
+      if (!inputValue.trim() || isThinking) return;
+
       setInputValue("");
       setIsInitial(false);
 
       // Send message to agent
-      await sendMessage(inputValue); 
+      await sendMessage(inputValue);
    };
 
    return (
       <div className="flex flex-col h-[calc(100vh-4rem)] binary-pattern">
          {isInitial ? (
             <div className="flex-1 flex flex-col items-center justify-center px-4">
-               <h1 className="text-4xl font-mono mb-8 text-center terminal-text">
+               <h1
+                  ref={titleRef}
+                  className="text-4xl font-mono mb-8 text-center"
+               >
                   How may I assist?
                </h1>
                <div className="w-full max-w-2xl">
@@ -70,7 +95,9 @@ export function ChatInterface() {
                         <div
                            key={index}
                            className={`flex ${
-                              message.sender === "user" ? "justify-end" : "justify-start"
+                              message.sender === "user"
+                                 ? "justify-end"
+                                 : "justify-start"
                            }`}
                         >
                            <div
