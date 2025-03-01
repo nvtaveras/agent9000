@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { ChainIcon } from "./chain-icon";
 
 export function Header({
    activeView,
@@ -50,7 +51,73 @@ export function Header({
             </div>
 
             <div className="hidden md:flex items-center gap-4">
-               <ConnectButton />
+               <ConnectButton.Custom>
+                  {({
+                     account,
+                     chain,
+                     openAccountModal,
+                     openChainModal,
+                     openConnectModal,
+                     mounted,
+                  }) => {
+                     const ready = mounted;
+                     if (!ready) {
+                        return null;
+                     }
+
+                     return (
+                        <div className="flex items-center gap-2">
+                           {(() => {
+                              if (!mounted || !account || !chain) {
+                                 return (
+                                    <button
+                                       onClick={openConnectModal}
+                                       className="cursor: pointer; bg-[#00ff9240] border border-[#00ff92] text-[#00ff92] 
+                                                 hover:bg-[#00ff9220] transition-all duration-200 
+                                                 font-mono text-sm px-3 py-1.5 rounded-xl cursor-pointer
+                                                 hover:shadow-[0_0_5px_rgba(0,255,146,0.3)]"
+                                    >
+                                       Connect Wallet
+                                    </button>
+                                 );
+                              }
+
+                              return (
+                                 <div className="flex items-center gap-2">
+                                    <button
+                                       onClick={openChainModal}
+                                       className="bg-[#00ff9240] border border-[#00ff92] text-[#00ff92] 
+                                                hover:bg-[#00ff9220] transition-all duration-200 
+                                                font-mono text-sm px-3 py-1.5 rounded-xl cursor-pointer
+                                                hover:shadow-[0_0_5px_rgba(0,255,146,0.3)]
+                                                flex items-center gap-2"
+                                    >
+                                       <ChainIcon
+                                          chainId={chain.id}
+                                          className="h-4 w-4"
+                                       />
+                                       {chain.name}
+                                    </button>
+                                    <button
+                                       onClick={openAccountModal}
+                                       className="bg-[#00ff9240] border border-[#00ff92] text-[#00ff92] 
+                                                hover:bg-[#00ff9220] transition-all duration-200 
+                                                font-mono text-sm px-3 py-1.5 rounded-xl cursor-pointer
+                                                hover:shadow-[0_0_5px_rgba(0,255,146,0.3)]
+                                                flex items-center gap-2"
+                                    >
+                                       <div className="h-4 w-4 flex items-center justify-center border border-[#00ff92] rounded-md text-xs">
+                                          $
+                                       </div>
+                                       {account.displayName}
+                                    </button>
+                                 </div>
+                              );
+                           })()}
+                        </div>
+                     );
+                  }}
+               </ConnectButton.Custom>
             </div>
          </div>
       </header>
