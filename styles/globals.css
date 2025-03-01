@@ -1,0 +1,122 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+
+    --card: 0 0% 3%;
+    --card-foreground: 0 0% 100%;
+
+    --popover: 0 0% 3%;
+    --popover-foreground: 0 0% 100%;
+
+    --primary: 24 100% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 100% 50%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 65%;
+
+    --accent: 0 0% 20%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 100% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 24 100% 50%;
+
+    --radius: 0px;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-mono;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-muted;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-primary/50 hover:bg-primary;
+  }
+}
+
+/* Terminal effect */
+.terminal-text {
+  position: relative;
+}
+
+.terminal-text::after {
+  content: "_";
+  position: absolute;
+  right: -0.5em;
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Matrix-like background pattern */
+.matrix-bg {
+  background-color: black;
+  background-image: linear-gradient(rgba(0, 0, 0, 0.97), rgba(0, 0, 0, 0.97)),
+    url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='rgba(255,102,0,0.03)'%3E01%3C/text%3E%3C/svg%3E");
+}
+
+/* Glowing effect */
+.glow {
+  box-shadow: 0 0 10px theme("colors.primary.DEFAULT"), 0 0 20px theme("colors.primary.DEFAULT"), 0 0 30px
+    theme("colors.primary.DEFAULT");
+}
+
+.glow-text {
+  text-shadow: 0 0 10px theme("colors.primary.DEFAULT"), 0 0 20px theme("colors.primary.DEFAULT");
+}
+
+/* Card styles */
+.card-hacker {
+  @apply bg-card border border-border/50 backdrop-blur-sm;
+  box-shadow: inset 0 0 20px rgba(255, 102, 0, 0.1);
+}
+
+/* Input styles */
+.input-hacker {
+  @apply bg-background border-border/50 font-mono text-foreground;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+/* Button styles */
+.button-hacker {
+  @apply bg-primary/10 border border-primary/50 text-primary hover:bg-primary/20 
+         transition-all duration-200 font-mono uppercase tracking-wider;
+}
+
+.button-hacker:hover {
+  box-shadow: 0 0 10px theme("colors.primary.DEFAULT");
+}
+
