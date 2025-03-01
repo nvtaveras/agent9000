@@ -8,7 +8,7 @@ import { WagmiProvider } from "wagmi";
 import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/styles.css";
 
-import { config } from "../../wagmi";
+import { config } from "@/wagmi";
 
 const client = new QueryClient();
 
