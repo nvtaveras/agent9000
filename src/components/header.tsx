@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { ChainIcon } from "./chain-icon";
+import Image from "next/image";
 
 export function Header({
    activeView,
@@ -17,9 +18,13 @@ export function Header({
             <div className="flex items-center gap-6">
                <Link href="/" className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded border border-primary/50 bg-background flex items-center justify-center overflow-hidden">
-                     <span className="font-mono text-primary text-xs terminal-text">
-                        A9K
-                     </span>
+                     <Image
+                        src="/logo-square.jpg"
+                        alt="Agent 9000 Logo"
+                        width={32}
+                        height={32}
+                        className="object-cover"
+                     />
                   </div>
                   <span className="text-xl font-mono text-primary">
                      Agent 9000
