@@ -18,10 +18,10 @@ import { UniswapService } from "@/app/providers/uniswap/service";
 import { ChainIcon } from "@/components/chain-icon";
 import { SingleChainRoute, SwapRoutes } from "@/app/providers/uniswap/service";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAccount, useWalletClient } from "wagmi";
+import { useAccount, useWalletClient, usePublicClient } from "wagmi";
 import { abi as erc20abi } from "@/app/providers/ABIs/erc20";
 import { abi as superswapperAbi } from "@/app/providers/ABIs/superswapper";
-import { parseUnits } from "viem";
+import { parseUnits, formatUnits } from "viem";
 
 export default function CryptoSwap() {
   const [activeView, setActiveView] = useState<"home" | "boomer" | "zoomer">("home");
@@ -37,6 +37,10 @@ export default function CryptoSwap() {
   const [txHash, setTxHash] = useState<string | null>(null);
   const { isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
+   const publicClient = usePublicClient();
+   const [sellTokenBalance, setSellTokenBalance] = useState<string>("0");
+   const [buyTokenBalance, setBuyTokenBalance] = useState<string>("0");
+   const [insufficientBalance, setInsufficientBalance] = useState(false);
 
   const uniswap = useMemo(() => new UniswapService(), []);
 
@@ -105,12 +109,18 @@ export default function CryptoSwap() {
       const routes = await uniswap.getSwapRoutes(sellCurrency, buyCurrency, sellAmount);
       const swaps = routes.optimizedRoute.steps;
 
-      const chains = swaps.map((swap) => BigInt(swap.chainId));
-      const amounts = swaps.map((swap) => {
-        const percentage = parseFloat(swap.percentage.toString()) / 100;
-        const amount = percentage * parseFloat(sellAmount);
-        return BigInt(parseUnits(amount.toString(), 18));
-      });
+         const chains = swaps.map((swap) => BigInt(swap.chainId));
+         const amounts = swaps.map((swap) =>
+            BigInt(
+               parseUnits(
+                  (
+                     (Number(swap.percentage) / 100) *
+                     Number(sellAmount)
+                  ).toString(),
+                  18
+               )
+            )
+         );
 
       const amountsSum = amounts.reduce((acc, amount) => acc + amount, BigInt(0));
 
@@ -158,8 +168,70 @@ export default function CryptoSwap() {
       return !matchingSingleChainRoute;
     }
 
-    return true;
-  };
+      return true;
+   };
+
+   const fetchTokenBalances = useCallback(async () => {
+      if (!publicClient || !isConnected) return;
+
+      try {
+         const chainId = await publicClient.getChainId();
+         const account = (await walletClient?.getAddresses())?.[0];
+         if (!account) return;
+
+         // Get token addresses
+         const sellTokenAddress =
+            UniswapService.knownTokensPerChain[chainId][sellCurrency];
+         const buyTokenAddress =
+            UniswapService.knownTokensPerChain[chainId][buyCurrency];
+
+         // Fetch sell token balance
+         const sellBalance = await publicClient.readContract({
+            address: sellTokenAddress as `0x${string}`,
+            abi: erc20abi,
+            functionName: "balanceOf",
+            args: [account],
+         });
+
+         // Fetch buy token balance using publicClient
+         const buyBalance = await publicClient.readContract({
+            address: buyTokenAddress as `0x${string}`,
+            abi: erc20abi,
+            functionName: "balanceOf",
+            args: [account],
+         });
+
+         // Format balances (assuming 18 decimals)
+         setSellTokenBalance(formatUnits(sellBalance as bigint, 18));
+         setBuyTokenBalance(formatUnits(buyBalance as bigint, 18));
+      } catch (error) {
+         console.error("Error fetching token balances:", error);
+      }
+   }, [publicClient, walletClient, isConnected, sellCurrency, buyCurrency]);
+
+   // Add this useEffect to fetch balances when needed
+   useEffect(() => {
+      if (isConnected) {
+         fetchTokenBalances();
+      }
+   }, [isConnected, sellCurrency, buyCurrency, fetchTokenBalances]);
+
+   // Add a function to set maximum available amount
+   const handleSetMaxAmount = () => {
+      setSellAmount(sellTokenBalance);
+   };
+
+   // Add validation for insufficient balance
+   useEffect(() => {
+      if (
+         isConnected &&
+         parseFloat(sellAmount) > parseFloat(sellTokenBalance)
+      ) {
+         setInsufficientBalance(true);
+      } else {
+         setInsufficientBalance(false);
+      }
+   }, [isConnected, sellAmount, sellTokenBalance]);
 
   return (
     <div className="flex flex-col min-h-screen matrix-bg">
@@ -230,37 +302,69 @@ export default function CryptoSwap() {
               </Button>
             </div>
 
-            <Card>
-              <CardContent className="space-y-4 pt-6">
-                {/* Sell Section */}
-                <div className="rounded-none border border-border/50">
-                  <div className="p-4 pb-2">
-                    <div className="text-sm text-muted-foreground font-mono mb-2">Sell</div>
-                    <div className="flex items-center">
-                      <Input
-                        type="text"
-                        value={sellAmount}
-                        onChange={handleSellAmountChange}
-                        className="border-0 text-5xl md:text-4xl font-normal p-0 h-auto focus-visible:ring-0"
-                      />
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="outline" className="button-hacker ml-2">
-                            <div className="w-6 h-6 rounded-none border border-primary/50 flex items-center justify-center mr-2">
-                              <span className="text-primary text-sm">$</span>
-                            </div>
-                            {sellCurrency}
-                            <ChevronDown className="h-4 w-4 ml-2" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <DropdownMenuItem onClick={() => handleSellCurrencyChange("ST9000")}>
-                            Token9000 (ST9000)
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleSellCurrencyChange("ETH")}>Super ETH</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
+                  <Card>
+                     <CardContent className="space-y-4 pt-6">
+                        {/* Sell Section */}
+                        <div className="rounded-none border border-border/50">
+                           <div className="p-4 pb-2">
+                              <div className="text-sm text-muted-foreground font-mono mb-2 flex justify-between">
+                                 <span>Sell</span>
+                                 {isConnected && (
+                                    <span>
+                                       Balance:{" "}
+                                       {parseFloat(sellTokenBalance).toFixed(6)}{" "}
+                                       {sellCurrency}
+                                    </span>
+                                 )}
+                              </div>
+                              <div className="flex items-center">
+                                 <Input
+                                    type="text"
+                                    value={sellAmount}
+                                    onChange={handleSellAmountChange}
+                                    className="border-0 text-5xl md:text-4xl font-normal p-0 h-auto focus-visible:ring-0"
+                                 />
+                                 {isConnected && (
+                                    <button
+                                       onClick={handleSetMaxAmount}
+                                       className="text-xs text-primary border border-primary/30 px-2 py-0.5 rounded ml-2 hover:bg-primary/10"
+                                    >
+                                       Max
+                                    </button>
+                                 )}
+                                 <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                       <Button
+                                          variant="outline"
+                                          className="button-hacker ml-2"
+                                       >
+                                          <div className="w-6 h-6 rounded-none border border-primary/50 flex items-center justify-center mr-2">
+                                             <span className="text-primary text-sm">
+                                                $
+                                             </span>
+                                          </div>
+                                          {sellCurrency}
+                                          <ChevronDown className="h-4 w-4 ml-2" />
+                                       </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent>
+                                       <DropdownMenuItem
+                                          onClick={() =>
+                                             handleSellCurrencyChange("ST9000")
+                                          }
+                                       >
+                                          Token9000 (ST9000)
+                                       </DropdownMenuItem>
+                                       <DropdownMenuItem
+                                          onClick={() =>
+                                             handleSellCurrencyChange("ETH")
+                                          }
+                                       >
+                                          Super ETH
+                                       </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                 </DropdownMenu>
+                              </div>
 
                     {/* TODO: Add the price of the token */}
                     {/* <div className="text-sm text-muted-foreground mt-1">
@@ -277,62 +381,90 @@ export default function CryptoSwap() {
                     </div>
                   </div>
 
-                  <div className="p-4 pt-2">
-                    <div className="text-sm text-muted-foreground font-mono mb-2">Buy</div>
-                    <div className="flex items-center">
-                      {isCalculating ? (
-                        <Skeleton className="h-8 flex-1" />
-                      ) : (
-                        <Input
-                          type="text"
-                          value={buyAmount}
-                          onChange={(e) => setBuyAmount(e.target.value)}
-                          className="border-0 text-5xl md:text-4xl font-normal p-0 h-auto focus-visible:ring-0"
-                        />
-                      )}
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="outline" className="button-hacker ml-2">
-                            <div className="w-6 h-6 rounded-none border border-primary/50 flex items-center justify-center mr-2">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="h-3 w-3 text-primary"
-                                viewBox="0 0 24 24"
-                              >
-                                <path d="M12 2L6 12L12 16L18 12L12 2Z" fill="currentColor" />
-                                <path d="M12 16V22L18 12L12 16Z" fill="currentColor" opacity="0.6" />
-                                <path d="M12 16L6 12L12 22V16Z" fill="currentColor" opacity="0.6" />
-                              </svg>
-                            </div>
-                            {buyCurrency}
-                            <ChevronDown className="h-4 w-4 ml-2" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <DropdownMenuItem onClick={() => handleBuyCurrencyChange("WETH")}>
-                            Super WETH
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleBuyCurrencyChange("T9K")}>
-                            Token9000 (T9K)
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
+                           <div className="p-4 pt-2">
+                              <div className="text-sm text-muted-foreground font-mono mb-2">
+                                 Buy
+                              </div>
+                              <div className="text-sm text-muted-foreground font-mono mb-2 flex justify-between">
+                                 <span>Buy</span>
+                                 {isConnected && (
+                                    <span>
+                                       Balance:{" "}
+                                       {parseFloat(buyTokenBalance).toFixed(6)}{" "}
+                                       {buyCurrency}
+                                    </span>
+                                 )}
+                              </div>
+                              <div className="flex items-center">
+                                 {isCalculating ? (
+                                    <Skeleton className="h-8 flex-1" />
+                                 ) : (
+                                    <Input
+                                       type="text"
+                                       value={buyAmount}
+                                       onChange={(e) =>
+                                          setBuyAmount(e.target.value)
+                                       }
+                                       className="border-0 text-5xl md:text-4xl font-normal p-0 h-auto focus-visible:ring-0"
+                                    />
+                                 )}
+                                 <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                       <Button
+                                          variant="outline"
+                                          className="button-hacker ml-2"
+                                       >
+                                          <div className="w-6 h-6 rounded-none border border-primary/50 flex items-center justify-center mr-2">
+                                             <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                className="h-3 w-3 text-primary"
+                                                viewBox="0 0 24 24"
+                                             >
+                                                <path
+                                                   d="M12 2L6 12L12 16L18 12L12 2Z"
+                                                   fill="currentColor"
+                                                />
+                                                <path
+                                                   d="M12 16V22L18 12L12 16Z"
+                                                   fill="currentColor"
+                                                   opacity="0.6"
+                                                />
+                                                <path
+                                                   d="M12 16L6 12L12 22V16Z"
+                                                   fill="currentColor"
+                                                   opacity="0.6"
+                                                />
+                                             </svg>
+                                          </div>
+                                          {buyCurrency}
+                                          <ChevronDown className="h-4 w-4 ml-2" />
+                                       </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent>
+                                       <DropdownMenuItem
+                                          onClick={() =>
+                                             handleBuyCurrencyChange("WETH")
+                                          }
+                                       >
+                                          Super WETH
+                                       </DropdownMenuItem>
+                                       <DropdownMenuItem
+                                          onClick={() =>
+                                             handleBuyCurrencyChange("T9K")
+                                          }
+                                       >
+                                          Token9000 (T9K)
+                                       </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                 </DropdownMenu>
+                              </div>
 
                     {/* TODO: Add the price of the token */}
                     {/* <div className="text-sm text-muted-foreground mt-1">
                                  $5,999.99
                               </div> */}
-                  </div>
-                </div>
-
-                {/* You Receive Section */}
-                <div className="flex justify-between items-center py-3 border-b border-border/50">
-                  <div className="text-muted-foreground font-mono">You receive (0% fee)</div>
-                  <div className="text-primary font-mono">
-                    {buyAmount} {buyCurrency}
-                  </div>
-                </div>
+                           </div>
+                        </div>
 
                 {/* Route Selection Button */}
                 <div
@@ -362,37 +494,44 @@ export default function CryptoSwap() {
                   </div>
                 </div>
 
-                {/* Review Button */}
-                <Button
-                  className="w-full text-lg py-6 tracking-wider"
-                  disabled={isCalculating || isSwapping || !isConnected}
-                  onClick={handleSwap}
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    {isSwapping ? (
-                      <>
-                        <div className="h-4 w-4 animate-spin rounded-[50%] border-2 border-white border-t-transparent" />
-                        Swapping...
-                      </>
-                    ) : isCalculating ? (
-                      <>
-                        <div className="h-4 w-4 animate-spin rounded-[50%] border-2 border-white border-t-transparent" />
-                        Getting Quote
-                      </>
-                    ) : !isConnected ? (
-                      "Connect Wallet"
-                    ) : (
-                      "Review Transaction"
-                    )}
-                  </div>
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </main>
-      ) : (
-        <ChatInterface />
-      )}
+                        {/* Review Button */}
+                        <Button
+                           className="w-full text-lg py-6 tracking-wider"
+                           disabled={
+                              isCalculating ||
+                              isSwapping ||
+                              !isConnected ||
+                              insufficientBalance
+                           }
+                           onClick={handleSwap}
+                        >
+                           <div className="flex items-center justify-center gap-2">
+                              {isSwapping ? (
+                                 <>
+                                    <div className="h-4 w-4 animate-spin rounded-[50%] border-2 border-white border-t-transparent" />
+                                    Swapping...
+                                 </>
+                              ) : isCalculating ? (
+                                 <>
+                                    <div className="h-4 w-4 animate-spin rounded-[50%] border-2 border-white border-t-transparent" />
+                                    Getting Quote
+                                 </>
+                              ) : !isConnected ? (
+                                 "Connect Wallet"
+                              ) : insufficientBalance ? (
+                                 "Insufficient Balance"
+                              ) : (
+                                 "Review Transaction"
+                              )}
+                           </div>
+                        </Button>
+                     </CardContent>
+                  </Card>
+               </div>
+            </main>
+         ) : (
+            <ChatInterface />
+         )}
 
       {/* Add the Routes Modal */}
       <Dialog open={showRouteModal} onOpenChange={setShowRouteModal}>
