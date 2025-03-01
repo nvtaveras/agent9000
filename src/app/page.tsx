@@ -297,14 +297,14 @@ export default function CryptoSwap() {
               </div>
             </div>
 
-            <div className="mt-12">
+            {/* <div className="mt-12">
               <button
                 onClick={() => setActiveView("boomer")}
                 className="px-8 py-4 text-xl font-mono bg-primary text-background hover:bg-primary/90 transition-colors"
               >
                 Launch App
               </button>
-            </div>
+            </div> */}
           </div>
         </main>
       ) : activeView === "boomer" ? (
