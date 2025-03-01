@@ -15,6 +15,29 @@ export interface UniswapPairInfo {
   reserveOut: string;
 }
 
+export interface SingleChainRoute {
+   chainId: number;
+   chainName: string;
+   amountOut: string;
+   fee: string;
+}
+
+export interface OptimizedRouteStep {
+   chainId: number;
+   chainName: string;
+   percentage: number;
+   amountOut: string;
+}
+
+export interface SwapRoutes {
+   optimizedRoute: {
+      steps: OptimizedRouteStep[];
+      totalAmountOut: string;
+      fee: string;
+   };
+   singleChainRoutes: SingleChainRoute[];
+}
+
 export class UniswapService {
   private static readonly SUPERSWAPPER_ADDRESS = "0x42d68F02E890fd91da05E24935e549bBeeCb4Dad";
   private static readonly knownTokensPerChain: Record<number, Record<string, string>> = {
@@ -160,6 +183,48 @@ export class UniswapService {
       return (amountInBN * BigInt(4)).toString();
     }
 
-    return amountIn; // Fallback 1:1 ratio
-  }
+      return amountIn; // Fallback 1:1 ratio
+   }
+
+   public async getSwapRoutes(
+      tokenIn: string,
+      tokenOut: string,
+      amountIn: string
+   ): Promise<SwapRoutes> {
+      // This is a dummy implementation that will be replaced with real logic
+      return {
+         optimizedRoute: {
+            steps: [
+               {
+                  chainId: 10,
+                  chainName: "Optimism",
+                  percentage: 60,
+                  amountOut: "1.35",
+               },
+               {
+                  chainId: 8453,
+                  chainName: "Base",
+                  percentage: 40,
+                  amountOut: "0.90",
+               },
+            ],
+            totalAmountOut: "2.25",
+            fee: "< 0.01",
+         },
+         singleChainRoutes: [
+            {
+               chainId: 10,
+               chainName: "Base",
+               amountOut: "2.24",
+               fee: "$27",
+            },
+            {
+               chainId: 10,
+               chainName: "Optimism",
+               amountOut: "2.23",
+               fee: "$32",
+            },
+         ],
+      };
+   }
 }
