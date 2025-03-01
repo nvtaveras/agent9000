@@ -685,7 +685,12 @@ export default function CryptoSwap() {
             {routes && txStatus === "pending" && (
               <div
                 className="route-animation-container rounded-lg border border-primary/20 bg-primary/5 p-4 my-2"
-                style={{ height: "320px" }}
+                style={{
+                  height: `${Math.min(
+                    400,
+                    200 + routes.optimizedRoute.steps.filter((step) => step.percentage > 0).length * 50,
+                  )}px`,
+                }}
               >
                 <h3 className="text-xs text-muted-foreground mb-4 font-mono text-sm">Cross-Chain Routes</h3>
 
