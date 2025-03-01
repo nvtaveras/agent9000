@@ -172,6 +172,9 @@ export class UniswapService {
     // This is a placeholder implementation
     // TODO: Implement actual price calculation using reserves
 
+    // Wait for 10 seconds
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+
     // For now, just return a dummy conversion:
     // If swapping from T9K to WETH: divide by 1000
     // If swapping from WETH to T9K: multiply by 1000

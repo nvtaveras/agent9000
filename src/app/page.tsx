@@ -22,6 +22,7 @@ import { ChatInterface } from "@/components/chat-interface";
 import { UniswapService } from "@/app/providers/uniswap/service";
 import { ChainIcon } from "@/components/chain-icon";
 import { SingleChainRoute, SwapRoutes } from "@/app/providers/uniswap/service";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function CryptoSwap() {
    const [activeView, setActiveView] = useState<"boomer" | "zoomer">("boomer");
@@ -32,10 +33,12 @@ export default function CryptoSwap() {
    const [activeTab, setActiveTab] = useState("Swap");
    const [showRouteModal, setShowRouteModal] = useState(false);
    const [routes, setRoutes] = useState<SwapRoutes | null>(null);
+   const [isCalculating, setIsCalculating] = useState(false);
 
    const uniswap = useMemo(() => new UniswapService(), []);
 
    const updateBuyAmount = useCallback(async () => {
+      setIsCalculating(true);
       try {
          const amountOut = await uniswap.getAmountOut(
             sellCurrency,
@@ -45,6 +48,8 @@ export default function CryptoSwap() {
          setBuyAmount(amountOut);
       } catch (error) {
          console.error("Error calculating amount out:", error);
+      } finally {
+         setIsCalculating(false);
       }
    }, [sellCurrency, buyCurrency, sellAmount, uniswap]);
 
@@ -187,14 +192,18 @@ export default function CryptoSwap() {
                                  Buy
                               </div>
                               <div className="flex items-center">
-                                 <Input
-                                    type="text"
-                                    value={buyAmount}
-                                    onChange={(e) =>
-                                       setBuyAmount(e.target.value)
-                                    }
-                                    className="border-0 text-5xl md:text-4xl font-normal p-0 h-auto focus-visible:ring-0"
-                                 />
+                                 {isCalculating ? (
+                                    <Skeleton className="h-8 flex-1" />
+                                 ) : (
+                                    <Input
+                                       type="text"
+                                       value={buyAmount}
+                                       onChange={(e) =>
+                                          setBuyAmount(e.target.value)
+                                       }
+                                       className="border-0 text-5xl md:text-4xl font-normal p-0 h-auto focus-visible:ring-0"
+                                    />
+                                 )}
                                  <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                        <Button
