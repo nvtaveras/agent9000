@@ -23,6 +23,7 @@ import { createWalletClient, defineChain, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { anvil } from "viem/chains";
 import { uniswapV2ActionProvider } from "@/app/providers/uniswap/uniswapV2Provider";
+import { customWalletActionProvider } from "@/app/providers/wallet/customWalletProvider";
 
 /**
  * AgentKit Integration Route
@@ -118,28 +119,20 @@ async function getOrInitializeAgent(): Promise<ReturnType<typeof createReactAgen
     // Initialize AgentKit: https://docs.cdp.coinbase.com/agentkit/docs/agent-actions
     const agentkit = await AgentKit.from({
       walletProvider,
-      actionProviders: [
-        // wethActionProvider(),
-        // pythActionProvider(),
-        walletActionProvider(),
-        // erc20ActionProvider(),
-        // superERC20ActionProvider(),
-        uniswapV2ActionProvider(),
-        // The CDP API Action Provider provides faucet functionality on base-sepolia. Can be removed if you do not need this functionality.
-        // cdpApiActionProvider({
-        //   apiKeyName: process.env.CDP_API_KEY_NAME,
-        //   apiKeyPrivateKey: process.env.CDP_API_KEY_PRIVATE_KEY,
-        // }),
-      ],
+      actionProviders: [uniswapV2ActionProvider(), customWalletActionProvider()],
     });
     const tools = await getLangChainTools(agentkit);
     const memory = new MemorySaver();
 
     const prompt = `
     You are a friendly AI agent that can interact onchain using the Coinbase Developer Platform AgentKit.
-    You are able to do cross-chain superswap across the optimism superchain (e.g. optimism, base, unichain, mode) using the Uniswap V2 protocol.
+
+    You can do things like:
+    - Provider the user with information about their wallet
+    - Swap tokens across the optimism superchain (e.g. optimism, base, unichain, mode) using the Uniswap V2 protocol
 
     You respond in a concise, friendly, casual manner, in a web3 tone, and in a way that is helpful and engaging.
+    Your responses are always in lowercase, and use casual web3 tone. Don't be corny, more like an edgy, cool, and friendly agent.
     `;
     agent = createReactAgent({
       llm,
