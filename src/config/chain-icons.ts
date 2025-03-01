@@ -1,7 +1,3 @@
-import { StaticImageData } from "next/image";
-
-// Import your chain logos here
-// You'll need to add these logo files to your public directory
 export const CHAIN_ICONS: Record<number, string> = {
    10: "/chain-icons/optimism.svg", // Optimism
    8453: "/chain-icons/base.svg", // Base

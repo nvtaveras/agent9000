@@ -213,7 +213,7 @@ export class UniswapService {
          },
          singleChainRoutes: [
             {
-               chainId: 10,
+               chainId: 8453,
                chainName: "Base",
                amountOut: "2.24",
                fee: "$27",

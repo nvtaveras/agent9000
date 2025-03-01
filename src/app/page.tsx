@@ -19,10 +19,7 @@ import {
 import { ChevronDown, ArrowDown, Sparkles, Settings } from "lucide-react";
 import { Header } from "@/components/header";
 import { ChatInterface } from "@/components/chat-interface";
-import {
-   OptimizedRouteStep,
-   UniswapService,
-} from "@/app/providers/uniswap/service";
+import { UniswapService } from "@/app/providers/uniswap/service";
 import { ChainIcon } from "@/components/chain-icon";
 import { SingleChainRoute, SwapRoutes } from "@/app/providers/uniswap/service";
 
@@ -274,16 +271,18 @@ export default function CryptoSwap() {
                         >
                            <div className="flex items-center gap-2 text-primary">
                               <div className="flex -space-x-1">
-                                 <div className="w-5 h-5 border border-primary/50 flex items-center justify-center z-10">
-                                    <span className="text-primary text-xs">
-                                       S
-                                    </span>
-                                 </div>
-                                 <div className="w-5 h-5 border border-secondary/50 flex items-center justify-center">
-                                    <span className="text-secondary text-xs">
-                                       C
-                                    </span>
-                                 </div>
+                                 {routes?.optimizedRoute.steps.map((step) => (
+                                    <ChainIcon
+                                       key={step.chainId}
+                                       chainId={step.chainId}
+                                       className={`w-5 h-5 border ${
+                                          step ===
+                                          routes.optimizedRoute.steps[0]
+                                             ? "border-primary/50 z-10"
+                                             : "border-secondary/50"
+                                       }`}
+                                    />
+                                 )) ?? <></>}
                               </div>
                               <span className="font-mono">
                                  Superchain Optimized
@@ -320,8 +319,11 @@ export default function CryptoSwap() {
                   {routes && (
                      <>
                         {/* Superchain Route */}
-                        <div className="flex flex-col gap-4 p-4 rounded-lg bg-card">
-                           <div className="flex items-center justify-between">
+                        <div className="flex flex-col gap-4 p-4 rounded-lg border border-primary/20 bg-primary/5 backdrop-blur-sm relative overflow-hidden">
+                           {/* Add a subtle gradient overlay */}
+                           <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent pointer-events-none" />
+
+                           <div className="flex items-center justify-between relative">
                               <div className="flex items-center gap-2">
                                  <div className="flex -space-x-1">
                                     {routes.optimizedRoute.steps.map((step) => (
@@ -335,7 +337,7 @@ export default function CryptoSwap() {
                                  <span className="font-mono text-lg">
                                     Superchain Optimized
                                  </span>
-                                 <Sparkles className="h-5 w-5" />
+                                 <Sparkles className="h-5 w-5 text-primary" />
                               </div>
                            </div>
 
@@ -343,7 +345,7 @@ export default function CryptoSwap() {
                               {routes.optimizedRoute.steps.map((step) => (
                                  <div
                                     key={step.chainId}
-                                    className="flex items-center gap-2"
+                                    className="flex items-center gap-2 p-2"
                                  >
                                     <div className="w-16 text-right font-mono">
                                        {step.percentage}%
@@ -356,12 +358,12 @@ export default function CryptoSwap() {
                               ))}
                            </div>
 
-                           <div className="flex flex-col gap-1 mt-2">
-                              <div className="font-mono">
+                           <div className="flex flex-col gap-1 mt-2 font-mono text-sm">
+                              <div className="text-primary">
                                  Estimated Output:{" "}
                                  {routes.optimizedRoute.totalAmountOut} WETH
                               </div>
-                              <div className="font-mono">
+                              <div className="text-primary/80">
                                  Fees: {routes.optimizedRoute.fee}
                               </div>
                            </div>
