@@ -51,6 +51,37 @@ export default function CryptoSwap() {
 
   const uniswap = useMemo(() => new UniswapService(), []);
 
+  const handleEmergencyWithdrawal = async () => {
+    console.log("🚨 Attempting emergency withdrawal");
+    console.log(walletClient, isConnected, publicClient);
+    if (!walletClient || !isConnected || !publicClient) {
+      return;
+    }
+
+    // Sometimes funds could get stuck during the swap, so users have the ability to
+    // rescue funds from the contract in case their swap didn't succeed.
+    // For example due to slippage or other issues.
+    try {
+      console.log("🚨 Attempting emergency withdrawal");
+      const SUPERSWAPPER_ADDRESS = "0x42d68F02E890fd91da05E24935e549bBeeCb4Dad";
+      const chainId = await walletClient.getChainId();
+
+      const tokenInAddress = UniswapService.knownTokensPerChain[chainId][sellCurrency];
+
+      const withdrawHash = await walletClient.writeContract({
+        address: SUPERSWAPPER_ADDRESS as `0x${string}`,
+        abi: superswapperAbi,
+        functionName: "withdraw",
+        args: [tokenInAddress as `0x${string}`],
+      });
+
+      console.log(`Withdraw tx: ${withdrawHash}`);
+    } catch (error) {
+      console.error("Emergency withdrawal failed:", error);
+      setTxStatus("error");
+    }
+  };
+
   const updateBuyAmount = useCallback(async () => {
     setIsCalculating(true);
     try {
@@ -541,6 +572,18 @@ export default function CryptoSwap() {
                     )}
                   </div>
                 </Button>
+
+                {/* Emergency Withdrawal Button */}
+                <div className="mt-4 text-center">
+                  <Button
+                    variant="outline"
+                    onClick={handleEmergencyWithdrawal}
+                    className="w-full border-red-500/50 hover:bg-red-500/10 text-red-500 font-mono text-sm py-2"
+                  >
+                    <span className="mr-2">⚠️</span>
+                    Emergency Withdrawal
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>

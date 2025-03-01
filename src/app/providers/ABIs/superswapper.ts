@@ -71,10 +71,10 @@ export const abi = [
   },
   {
     type: "function",
-    name: "executeSwap",
+    name: "crossChainWithdraw",
     inputs: [
       {
-        name: "sourceChainId",
+        name: "chainId",
         type: "uint256",
         internalType: "uint256",
       },
@@ -88,14 +88,57 @@ export const abi = [
         type: "address",
         internalType: "address",
       },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "failedSwaps",
+    inputs: [
       {
-        name: "amountIn",
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
         type: "uint256",
         internalType: "uint256",
       },
     ],
-    outputs: [],
-    stateMutability: "nonpayable",
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getFailedSwaps",
+    inputs: [
+      {
+        name: "user",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "tokenIn",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -167,6 +210,34 @@ export const abi = [
   },
   {
     type: "function",
+    name: "relaySwap",
+    inputs: [
+      {
+        name: "sourceChainId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "receiver",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "tokenIn",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "amountIn",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "renounceOwnership",
     inputs: [],
     outputs: [],
@@ -181,6 +252,19 @@ export const abi = [
   },
   {
     type: "function",
+    name: "setSuperToken9000",
+    inputs: [
+      {
+        name: "superToken9000_",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "setUniswapV2Router",
     inputs: [
       {
@@ -191,6 +275,25 @@ export const abi = [
     ],
     outputs: [],
     stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "supportedChainIds",
+    inputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -217,6 +320,19 @@ export const abi = [
       },
     ],
     stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "withdraw",
+    inputs: [
+      {
+        name: "tokenIn",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
   },
   {
     type: "event",
@@ -266,6 +382,16 @@ export const abi = [
   {
     type: "error",
     name: "AlreadyInitialized",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "CallerNotL2toL2CrossDomainMessenger",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "InvalidCrossDomainSender",
     inputs: [],
   },
   {

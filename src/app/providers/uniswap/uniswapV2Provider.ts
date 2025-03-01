@@ -15,7 +15,7 @@ export class UniswapV2ActionProvider extends ActionProvider<EvmWalletProvider> {
   }
 
   @CreateAction({
-    name: "swap_qupte",
+    name: "swap_quote",
     description: `
     Get the amount of tokens that will be received for a swap.
 
