@@ -457,30 +457,34 @@ export default function CryptoSwap() {
                   {routes && (
                      <>
                         {/* Superchain Route */}
-                        <div className="flex flex-col gap-2 p-3 rounded-lg border border-primary/20 bg-primary/5">
+                        <div className="flex flex-col gap-3 p-4 rounded-lg border border-primary/20 bg-primary/5">
                            <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
                                  <div className="flex -space-x-1">
                                     {routes.optimizedRoute.steps
                                        .filter((step) => step.percentage > 0)
+                                       .sort(
+                                          (a, b) => b.percentage - a.percentage
+                                       )
                                        .map((step) => (
                                           <ChainIcon
                                              key={step.chainId}
                                              chainId={step.chainId}
-                                             className="h-6 w-6 border"
+                                             className="h-7 w-7 border"
                                           />
                                        ))}
                                  </div>
-                                 <span className="text-sm font-mono">
+                                 <span className="text-base font-mono">
                                     Superchain Optimized
                                  </span>
-                                 <Sparkles className="h-4 w-4 text-primary" />
+                                 <Sparkles className="h-5 w-5 text-primary" />
                               </div>
                            </div>
 
-                           <div className="grid grid-cols-2 gap-1 text-sm">
+                           <div className="grid grid-cols-2 gap-2 text-base">
                               {routes.optimizedRoute.steps
                                  .filter((step) => step.percentage > 0)
+                                 .sort((a, b) => b.percentage - a.percentage)
                                  .map((step) => (
                                     <div
                                        key={step.chainId}
@@ -488,7 +492,7 @@ export default function CryptoSwap() {
                                     >
                                        <ChainIcon
                                           chainId={step.chainId}
-                                          className="h-4 w-4"
+                                          className="h-5 w-5"
                                        />
                                        <span className="font-mono">
                                           {step.percentage}%
@@ -497,14 +501,14 @@ export default function CryptoSwap() {
                                  ))}
                            </div>
 
-                           <div className="text-xs font-mono text-primary pt-1">
+                           <div className="text-sm font-mono text-primary pt-1">
                               Output: {routes.optimizedRoute.totalAmountOut}{" "}
                               {buyCurrency}
                            </div>
                         </div>
 
                         {/* Single-Chain Routes */}
-                        <div className="text-xs text-muted-foreground font-mono pt-1">
+                        <div className="text-sm text-muted-foreground font-mono pt-2">
                            Single Chain Swaps:
                         </div>
                         {routes.singleChainRoutes.map(
@@ -518,7 +522,7 @@ export default function CryptoSwap() {
                               return (
                                  <div
                                     key={route.chainId}
-                                    className={`flex items-center justify-between p-2 border rounded-sm text-xs ${
+                                    className={`flex items-center justify-between p-3 border rounded-sm text-sm ${
                                        isHighlighted
                                           ? "border-primary/20 bg-primary/5"
                                           : "opacity-50 border-muted/20"
@@ -527,7 +531,7 @@ export default function CryptoSwap() {
                                     <div className="flex items-center gap-2">
                                        <ChainIcon
                                           chainId={route.chainId}
-                                          className="h-4 w-4"
+                                          className="h-5 w-5"
                                        />
                                        <span>{route.chainName}</span>
                                     </div>
