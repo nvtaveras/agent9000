@@ -7,13 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Send } from "lucide-react";
 import { useAgent } from "@/app/hooks/useAgent";
-import ReactMarkdown from "react-markdown";
-
-// interface Message {
-//    text: string;
-//    timestamp: string;
-//    isUser: boolean;
-// }
+import ReactMarkdown from "react-markdown"; 
 
 export function ChatInterface() {
    const [inputValue, setInputValue] = useState("");
@@ -31,32 +25,13 @@ export function ChatInterface() {
 
    const handleSendMessage = async (e: React.FormEvent) => {
       e.preventDefault();
-      if (!inputValue.trim() || isThinking) return;
-
-      // const userMessage: Message = {
-      //    text: inputValue,
-      //    timestamp: new Date().toLocaleTimeString([], {
-      //       hour: "2-digit",
-      //       minute: "2-digit",
-      //    }),
-      //    isUser: true,
-      // };
+      if (!inputValue.trim() || isThinking) return; 
  
       setInputValue("");
       setIsInitial(false);
 
       // Send message to agent
-      await sendMessage(inputValue);
-
-      // const agentMessage: Message = {
-      //    text: "Response from agent",
-      //    timestamp: new Date().toLocaleTimeString([], {
-      //       hour: "2-digit",
-      //       minute: "2-digit",
-      //    }),
-      //    isUser: false,
-      // };
-      // setMessages((prev) => [...prev, agentMessage]);
+      await sendMessage(inputValue); 
    };
 
    return (
