@@ -52,8 +52,6 @@ export default function CryptoSwap() {
   const uniswap = useMemo(() => new UniswapService(), []);
 
   const handleEmergencyWithdrawal = async () => {
-    console.log("🚨 Attempting emergency withdrawal");
-    console.log(walletClient, isConnected, publicClient);
     if (!walletClient || !isConnected || !publicClient) {
       return;
     }
