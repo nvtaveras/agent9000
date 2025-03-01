@@ -168,6 +168,31 @@ export default function CryptoSwap() {
       }
    };
 
+   const shouldShowOptimizedRoute = (routes: SwapRoutes | null) => {
+      if (!routes) return false;
+
+      const activeSteps = routes.optimizedRoute.steps.filter(
+         (step) => step.percentage > 0
+      );
+
+      // If there's only one active step
+      if (activeSteps.length === 1) {
+         const step = activeSteps[0];
+         // Check if this step exists in single chain routes with same amount
+         const matchingSingleChainRoute = routes.singleChainRoutes.find(
+            (route) =>
+               route.chainId === step.chainId &&
+               Math.abs(
+                  parseFloat(route.amountOut) -
+                     parseFloat(routes.optimizedRoute.totalAmountOut)
+               ) < 0.000001
+         );
+         return !matchingSingleChainRoute;
+      }
+
+      return true;
+   };
+
    return (
       <div className="flex flex-col min-h-screen matrix-bg">
          <Header activeView={activeView} setActiveView={setActiveView} />
@@ -350,7 +375,7 @@ export default function CryptoSwap() {
                            </div>
                         </div>
 
-                        {/* Superchain Optimized */}
+                        {/* Route Selection Button */}
                         <div
                            className={`flex justify-between items-center py-2 ${
                               routes ? "cursor-pointer" : "opacity-50"
@@ -359,23 +384,30 @@ export default function CryptoSwap() {
                         >
                            <div className="flex items-center gap-2 text-primary">
                               <div className="flex -space-x-1">
-                                 {routes?.optimizedRoute.steps.map((step) => (
-                                    <ChainIcon
-                                       key={step.chainId}
-                                       chainId={step.chainId}
-                                       className={`w-5 h-5 border ${
-                                          step ===
-                                          routes.optimizedRoute.steps[0]
-                                             ? "border-primary/50 z-10"
-                                             : "border-secondary/50"
-                                       }`}
-                                    />
-                                 )) ?? <></>}
+                                 {routes?.optimizedRoute.steps
+                                    .filter((step) => step.percentage > 0)
+                                    .map((step) => (
+                                       <ChainIcon
+                                          key={step.chainId}
+                                          chainId={step.chainId}
+                                          className={`w-5 h-5 border ${
+                                             step ===
+                                             routes.optimizedRoute.steps[0]
+                                                ? "border-primary/50 z-10"
+                                                : "border-secondary/50"
+                                          }`}
+                                       />
+                                    )) ?? <></>}
                               </div>
                               <span className="font-mono">
-                                 Superchain Optimized
+                                 {shouldShowOptimizedRoute(routes)
+                                    ? "Superchain Optimized"
+                                    : routes?.optimizedRoute.steps[0]
+                                         ?.chainName}
                               </span>
-                              <Sparkles className="h-4 w-4" />
+                              {shouldShowOptimizedRoute(routes) && (
+                                 <Sparkles className="h-4 w-4" />
+                              )}
                            </div>
                         </div>
 
@@ -429,13 +461,15 @@ export default function CryptoSwap() {
                            <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
                                  <div className="flex -space-x-1">
-                                    {routes.optimizedRoute.steps.map((step) => (
-                                       <ChainIcon
-                                          key={step.chainId}
-                                          chainId={step.chainId}
-                                          className="h-6 w-6 border"
-                                       />
-                                    ))}
+                                    {routes.optimizedRoute.steps
+                                       .filter((step) => step.percentage > 0)
+                                       .map((step) => (
+                                          <ChainIcon
+                                             key={step.chainId}
+                                             chainId={step.chainId}
+                                             className="h-6 w-6 border"
+                                          />
+                                       ))}
                                  </div>
                                  <span className="text-sm font-mono">
                                     Superchain Optimized
@@ -445,24 +479,27 @@ export default function CryptoSwap() {
                            </div>
 
                            <div className="grid grid-cols-2 gap-1 text-sm">
-                              {routes.optimizedRoute.steps.map((step) => (
-                                 <div
-                                    key={step.chainId}
-                                    className="flex items-center gap-2"
-                                 >
-                                    <ChainIcon
-                                       chainId={step.chainId}
-                                       className="h-4 w-4"
-                                    />
-                                    <span className="font-mono">
-                                       {step.percentage}%
-                                    </span>
-                                 </div>
-                              ))}
+                              {routes.optimizedRoute.steps
+                                 .filter((step) => step.percentage > 0)
+                                 .map((step) => (
+                                    <div
+                                       key={step.chainId}
+                                       className="flex items-center gap-2"
+                                    >
+                                       <ChainIcon
+                                          chainId={step.chainId}
+                                          className="h-4 w-4"
+                                       />
+                                       <span className="font-mono">
+                                          {step.percentage}%
+                                       </span>
+                                    </div>
+                                 ))}
                            </div>
 
                            <div className="text-xs font-mono text-primary pt-1">
-                              Output: {routes.optimizedRoute.totalAmountOut} ETH
+                              Output: {routes.optimizedRoute.totalAmountOut}{" "}
+                              {buyCurrency}
                            </div>
                         </div>
 
@@ -471,23 +508,35 @@ export default function CryptoSwap() {
                            Single Chain Swaps:
                         </div>
                         {routes.singleChainRoutes.map(
-                           (route: SingleChainRoute) => (
-                              <div
-                                 key={route.chainId}
-                                 className="flex items-center justify-between p-2 opacity-50 border border-muted/20 rounded-sm text-xs"
-                              >
-                                 <div className="flex items-center gap-2">
-                                    <ChainIcon
-                                       chainId={route.chainId}
-                                       className="h-4 w-4"
-                                    />
-                                    <span>{route.chainName}</span>
+                           (route: SingleChainRoute) => {
+                              const isHighlighted =
+                                 routes &&
+                                 !shouldShowOptimizedRoute(routes) &&
+                                 route.chainId ===
+                                    routes.optimizedRoute.steps[0].chainId;
+
+                              return (
+                                 <div
+                                    key={route.chainId}
+                                    className={`flex items-center justify-between p-2 border rounded-sm text-xs ${
+                                       isHighlighted
+                                          ? "border-primary/20 bg-primary/5"
+                                          : "opacity-50 border-muted/20"
+                                    }`}
+                                 >
+                                    <div className="flex items-center gap-2">
+                                       <ChainIcon
+                                          chainId={route.chainId}
+                                          className="h-4 w-4"
+                                       />
+                                       <span>{route.chainName}</span>
+                                    </div>
+                                    <span className="font-mono">
+                                       {route.amountOut} {buyCurrency}
+                                    </span>
                                  </div>
-                                 <span className="font-mono">
-                                    {route.amountOut} {buyCurrency}
-                                 </span>
-                              </div>
-                           )
+                              );
+                           }
                         )}
                      </>
                   )}

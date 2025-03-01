@@ -1,4 +1,10 @@
-import { encodeFunctionData, formatUnits, Hex, parseUnits, PublicClient } from "viem";
+import {
+   encodeFunctionData,
+   formatUnits,
+   Hex,
+   parseUnits,
+   PublicClient,
+} from "viem";
 import { getViemClients } from "../viem/chains";
 import { abi as uniswapAbi } from "../ABIs/uniswap";
 import { abi as uniswapFactoryAbi } from "../ABIs/uniswapFactory";
@@ -9,33 +15,33 @@ import { UniswapOptimizor } from "./optimizooor";
 import { CHAIN_NAMES } from "@/config/chain-icons";
 
 export interface UniswapPairInfo {
-  chainId: number;
-  address: string;
-  tokenIn: string;
-  tokenOut: string;
-  reserveIn: string;
-  reserveOut: string;
+   chainId: number;
+   address: string;
+   tokenIn: string;
+   tokenOut: string;
+   reserveIn: string;
+   reserveOut: string;
 }
 
 export interface SingleChainRoute {
-  chainId: number;
-  chainName: string;
-  amountOut: string;
+   chainId: number;
+   chainName: string;
+   amountOut: string;
 }
 
 export interface OptimizedRouteStep {
-  chainId: number;
-  chainName: string;
-  percentage: number;
-  amountOut: string;
+   chainId: number;
+   chainName: string;
+   percentage: number;
+   amountOut: string;
 }
 
 export interface SwapRoutes {
-  optimizedRoute: {
-    steps: OptimizedRouteStep[];
-    totalAmountOut: string;
-  };
-  singleChainRoutes: SingleChainRoute[];
+   optimizedRoute: {
+      steps: OptimizedRouteStep[];
+      totalAmountOut: string;
+   };
+   singleChainRoutes: SingleChainRoute[];
 }
 
 export class UniswapService {
@@ -185,61 +191,86 @@ export class UniswapService {
       return pairs;
    }
 
-  public async getAmountOut(tokenIn: string, tokenOut: string, amountIn: string): Promise<string> {
-    const amountInWei = parseUnits(amountIn, 18).toString();
+   public async getAmountOut(
+      tokenIn: string,
+      tokenOut: string,
+      amountIn: string
+   ): Promise<string> {
+      const amountInWei = parseUnits(amountIn, 18).toString();
 
-    const pairs = await this.fetchPairsOnAllChains(tokenIn, tokenOut);
-    const optimizooor = new UniswapOptimizor();
-    const swaps = optimizooor.getSwapsToExecute(amountInWei, pairs);
+      const pairs = await this.fetchPairsOnAllChains(tokenIn, tokenOut);
+      const optimizooor = new UniswapOptimizor();
+      const swaps = optimizooor.getSwapsToExecute(amountInWei, pairs);
 
-    const { totalAmountOut } = optimizooor.calculateSplitAmountOuts(pairs, swaps);
+      const { totalAmountOut } = optimizooor.calculateSplitAmountOuts(
+         pairs,
+         swaps
+      );
 
-    return formatUnits(BigInt(totalAmountOut), 18);
-  }
+      return formatUnits(BigInt(totalAmountOut), 18);
+   }
 
-  public async getSwapRoutes(tokenIn: string, tokenOut: string, amountIn: string): Promise<SwapRoutes> {
-    // This is a dummy implementation that will be replaced with real logic
-    const amountInWei = parseUnits(amountIn, 18).toString();
+   public async getSwapRoutes(
+      tokenIn: string,
+      tokenOut: string,
+      amountIn: string
+   ): Promise<SwapRoutes> {
+      // This is a dummy implementation that will be replaced with real logic
+      const amountInWei = parseUnits(amountIn, 18).toString();
 
-    const pairs = await this.fetchPairsOnAllChains(tokenIn, tokenOut);
-    const optimizooor = new UniswapOptimizor();
-    const swaps = optimizooor.getSwapsToExecute(amountInWei, pairs);
+      const pairs = await this.fetchPairsOnAllChains(tokenIn, tokenOut);
+      const optimizooor = new UniswapOptimizor();
+      const swaps = optimizooor.getSwapsToExecute(amountInWei, pairs);
 
-    let { splitAmountOuts, totalAmountOut } = optimizooor.calculateSplitAmountOuts(pairs, swaps);
-    let singleChainRoutes = optimizooor.calculateSingleExchangeAmountOuts(pairs, swaps);
+      let { splitAmountOuts, totalAmountOut } =
+         optimizooor.calculateSplitAmountOuts(pairs, swaps);
+      let singleChainRoutes = optimizooor.calculateSingleExchangeAmountOuts(
+         pairs,
+         swaps
+      );
 
-    totalAmountOut = formatUnits(BigInt(totalAmountOut), 18);
-    splitAmountOuts = splitAmountOuts.map((split) => ({
-      ...split,
-      amountOut: formatUnits(BigInt(split.amountOut), 18),
-    }));
-    singleChainRoutes = singleChainRoutes.map((route) => ({
-      ...route,
-      amountOut: formatUnits(BigInt(route.amountOut), 18),
-    }));
+      totalAmountOut = formatUnits(BigInt(totalAmountOut), 18);
+      splitAmountOuts = splitAmountOuts.map((split) => ({
+         ...split,
+         amountOut: formatUnits(BigInt(split.amountOut), 18),
+      }));
+      singleChainRoutes = singleChainRoutes.map((route) => ({
+         ...route,
+         amountOut: formatUnits(BigInt(route.amountOut), 18),
+      }));
 
-    const optimizedRouteSteps = splitAmountOuts.map(
-      (split) =>
-        ({
-          chainId: split.chainId,
-          chainName: CHAIN_NAMES[split.chainId],
-          percentage: parseFloat(Number(100 * (parseFloat(split.amountOut) / parseFloat(totalAmountOut))).toFixed(2)),
-          amountOut: split.amountOut,
-        } as OptimizedRouteStep),
-    );
+      const optimizedRouteSteps = splitAmountOuts.map(
+         (split) =>
+            ({
+               chainId: split.chainId,
+               chainName: CHAIN_NAMES[split.chainId],
+               percentage: parseFloat(
+                  Number(
+                     100 *
+                        (parseFloat(split.amountOut) /
+                           parseFloat(totalAmountOut))
+                  ).toFixed(2)
+               ),
+               amountOut: split.amountOut,
+            } as OptimizedRouteStep)
+      );
 
-    const singleChainSteps = singleChainRoutes.map((route) => ({
-      chainId: route.chainId,
-      chainName: CHAIN_NAMES[route.chainId],
-      amountOut: route.amountOut,
-    }));
+      const singleChainSteps = singleChainRoutes.map((route) => ({
+         chainId: route.chainId,
+         chainName: CHAIN_NAMES[route.chainId],
+         amountOut: route.amountOut,
+      }));
 
-    return {
-      optimizedRoute: {
-        steps: optimizedRouteSteps,
-        totalAmountOut: totalAmountOut,
-      },
-      singleChainRoutes: singleChainSteps,
-    };
-  }
+      const routes = {
+         optimizedRoute: {
+            steps: optimizedRouteSteps,
+            totalAmountOut: totalAmountOut,
+         },
+         singleChainRoutes: singleChainSteps,
+      };
+
+      console.log(routes);
+
+      return routes;
+   }
 }
