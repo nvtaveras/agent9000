@@ -311,11 +311,11 @@ export default function CryptoSwap() {
   }, [txInterval]);
 
   return (
-    <div className="flex flex-col min-h-screen matrix-bg">
+    <div className="flex flex-col min-h-screen">
       <Header activeView={activeView} setActiveView={setActiveView} />
 
       {activeView === "home" ? (
-        <main className="flex-1 flex flex-col items-center justify-center p-8 matrix-bg">
+        <main className="flex-1 flex flex-col items-center justify-center p-8">
           <div className="w-full max-w-4xl text-center space-y-8">
             <h1 className="text-[8rem] md:text-[12rem] font-mono text-primary leading-none tracking-tighter animate-pulse">
               A9K
@@ -394,9 +394,6 @@ export default function CryptoSwap() {
                   </button>
                 ))}
               </div>
-              <Button variant="ghost" size="icon" className="ml-2 text-primary hover:text-primary/80">
-                <Settings className="h-5 w-5" />
-              </Button>
             </div>
 
             <Card>
@@ -744,16 +741,12 @@ export default function CryptoSwap() {
               <div className="text-2xl font-mono">
                 {txStatus === "pending" ? (
                   <>
-                    {Math.floor(txTimer / 60)
-                      .toString()
-                      .padStart(2, "0")}
-                    :{(txTimer % 60).toString().padStart(2, "0")}
+                    {/* No timer displayed during pending state */}
+                    Processing transaction...
                   </>
                 ) : txStatus === "success" ? (
                   <div className="flex items-center">
-                    <span>
-                      Time taken: {Math.floor(txTimeElapsed / 60)}:{(txTimeElapsed % 60).toString().padStart(2, "0")}
-                    </span>
+                    <span>That was fast!</span>
                     <span className="ml-2 text-2xl">😮</span>
                   </div>
                 ) : (
